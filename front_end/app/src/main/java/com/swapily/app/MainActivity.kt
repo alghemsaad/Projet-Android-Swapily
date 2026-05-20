@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.swapily.app.ui.screens.LoginScreen
 
 class MainActivity : ComponentActivity() {
 
@@ -17,8 +18,8 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            SwapilyApp()
-        }
+            LoginScreen()
+            }
     }
 }
 
