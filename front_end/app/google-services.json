@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "137556718728",
+    "project_id": "swapily-7c8ce",
+    "storage_bucket": "swapily-7c8ce.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:137556718728:android:49b70720371d74258ddb3d",
+        "android_client_info": {
+          "package_name": "com.swapily.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "137556718728-sanu21fr06upup43tk97v8p02mscvp0a.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.swapily.app",
+            "certificate_hash": "83f0da6500134e162338cab1f317c9edbd533c24"
+          }
+        },
+        {
+          "client_id": "137556718728-4j2f20prdptm3cs19qhhos0t027mq1bc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAyMWc6KR39o3nysbm-UwBcMnujDd8VIBI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "137556718728-4j2f20prdptm3cs19qhhos0t027mq1bc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

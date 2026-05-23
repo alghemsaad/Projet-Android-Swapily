@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Swapily</string>
+    <string name="default_web_client_id" translatable="false">YOUR_CLIENT_ID_HERE</string>
+    <string name="facebook_app_id">1384125196858832</string>
+    <string name="fb_login_protocol_scheme">fb1384125196858832</string>
+    <string name="facebook_client_token">bd6c22942753fe6e19ec98f669889110</string>
+</resources>
