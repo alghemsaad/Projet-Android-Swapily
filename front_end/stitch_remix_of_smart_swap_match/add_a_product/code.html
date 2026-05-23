@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-highest": "#c1ecd4",
+                    "on-tertiary": "#ffffff",
+                    "primary-fixed": "#b1f0ce",
+                    "on-primary-fixed": "#002114",
+                    "primary": "#0f5238",
+                    "on-primary": "#ffffff",
+                    "inverse-primary": "#95d4b3",
+                    "on-secondary-container": "#327053",
+                    "on-tertiary-fixed": "#092012",
+                    "surface-dim": "#b8e4cc",
+                    "surface": "#e8fff0",
+                    "on-background": "#002114",
+                    "on-secondary": "#ffffff",
+                    "surface-variant": "#c1ecd4",
+                    "on-error-container": "#93000a",
+                    "inverse-on-surface": "#cffbe2",
+                    "outline-variant": "#bfc9c1",
+                    "on-surface": "#002114",
+                    "primary-container": "#2d6a4f",
+                    "surface-container-low": "#d1fee5",
+                    "primary-fixed-dim": "#95d4b3",
+                    "on-tertiary-container": "#c6e1ca",
+                    "outline": "#707973",
+                    "secondary-fixed": "#b0f1cc",
+                    "error": "#ba1a1a",
+                    "on-primary-container": "#a8e7c5",
+                    "on-secondary-fixed": "#002113",
+                    "error-container": "#ffdad6",
+                    "surface-container-lowest": "#ffffff",
+                    "inverse-surface": "#0e3727",
+                    "on-secondary-fixed-variant": "#0c5136",
+                    "secondary-fixed-dim": "#94d4b1",
+                    "tertiary-fixed": "#cee9d3",
+                    "tertiary-fixed-dim": "#b3cdb7",
+                    "surface-container": "#ccf8df",
+                    "secondary": "#2b694d",
+                    "on-error": "#ffffff",
+                    "secondary-container": "#b0f1cc",
+                    "surface-tint": "#2c694e",
+                    "on-surface-variant": "#404943",
+                    "on-tertiary-fixed-variant": "#354c3b",
+                    "tertiary": "#364d3c",
+                    "surface-container-high": "#c6f2da",
+                    "background": "#e8fff0",
+                    "on-primary-fixed-variant": "#0e5138",
+                    "surface-bright": "#e8fff0",
+                    "tertiary-container": "#4d6553"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "xs": "8px",
+                    "xl": "48px",
+                    "sm": "16px",
+                    "base": "4px",
+                    "margin-mobile": "20px",
+                    "gutter-mobile": "12px",
+                    "md": "24px",
+                    "lg": "32px"
+            },
+            "fontFamily": {
+                    "headline-lg": ["Plus Jakarta Sans"],
+                    "headline-lg-mobile": ["Plus Jakarta Sans"],
+                    "body-sm": ["Plus Jakarta Sans"],
+                    "headline-md": ["Plus Jakarta Sans"],
+                    "label-md": ["Plus Jakarta Sans"],
+                    "body-lg": ["Plus Jakarta Sans"],
+                    "button": ["Plus Jakarta Sans"]
+            },
+            "fontSize": {
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "headline-lg-mobile": ["26px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                    "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                    "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                    "button": ["16px", {"lineHeight": "20px", "fontWeight": "600"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            background-color: #ffffff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="bg-surface-container-lowest text-on-surface min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="bg-surface shadow-[0px_4px_20px_rgba(27,67,50,0.05)] docked full-width top-0 z-50 flex justify-between items-center w-full px-margin-mobile h-16">
+<div class="flex items-center gap-xs">
+<button class="material-symbols-outlined text-primary hover:bg-surface-container-highest transition-colors p-2 rounded-full active:scale-95 transition-transform duration-200">
+                search
+            </button>
+</div>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary tracking-tight">SwapIt</h1>
+<div class="flex items-center gap-xs">
+<button class="material-symbols-outlined text-primary hover:bg-surface-container-highest transition-colors p-2 rounded-full active:scale-95 transition-transform duration-200">
+                notifications
+            </button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-8 pb-32 px-margin-mobile max-w-2xl mx-auto w-full">
+<div class="mb-lg text-center">
+<h2 class="font-headline-md text-headline-md text-primary mb-xs">Add a product</h2>
+<p class="font-body-sm text-body-sm text-on-surface-variant">Give a second life to your items.</p>
+</div>
+<form class="space-y-md">
+<!-- Step 1: Image Upload -->
+<section class="space-y-sm">
+<label class="font-label-md text-label-md text-on-surface-variant block uppercase tracking-wider">1. ITEM PHOTOS</label>
+<div class="grid grid-cols-2 gap-gutter-mobile h-48">
+<div class="border-2 border-dashed border-outline-variant rounded-xl flex flex-col items-center justify-center bg-surface-container-low hover:bg-surface-container transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-primary text-3xl mb-xs group-hover:scale-110 transition-transform">camera_enhance</span>
+<span class="font-label-md text-label-md text-primary">Take a photo</span>
+</div>
+<div class="border-2 border-dashed border-outline-variant rounded-xl flex flex-col items-center justify-center bg-surface-container-low hover:bg-surface-container transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-primary text-3xl mb-xs group-hover:scale-110 transition-transform">photo_library</span>
+<span class="font-label-md text-label-md text-primary">Gallery</span>
+</div>
+</div>
+<div class="flex items-center gap-xs overflow-x-auto hide-scrollbar py-2">
+<div class="relative min-w-[80px] h-[80px] rounded-lg overflow-hidden shadow-sm">
+<img alt="Sneakers" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB654ZDblsMOokr0pg89_CU16QnVM2ToaqOaxkfKKfp49cFh1HV0sdrW-b8YS32ozhys53yy9NmxxoQCYVCO8pk-9eWZkXp68XwxCfoRLb2LYNs3Lj-HiwLhYTkdoV7aZlk1khdQPscXwdGGXvGWLm2acfan9WKOp9fo_m3iJ_mqwNmqSIaNWlIJ8hNl901RFZLzYPxMXLqi4Iazw7V63o6oyiNsUU5m_nQLScTvcmM42QdLVHyMvX3P-3L6LIQ00OSA4wGQvUL1vA"/>
+<button class="absolute top-1 right-1 bg-primary text-on-primary rounded-full p-1 opacity-90">
+<span class="material-symbols-outlined text-[14px]">close</span>
+</button>
+</div>
+<div class="min-w-[80px] h-[80px] rounded-lg border border-outline-variant flex items-center justify-center bg-surface-container-lowest">
+<span class="material-symbols-outlined text-outline">add</span>
+</div>
+</div>
+</section>
+<!-- Step 2: Title & Description -->
+<section class="space-y-sm">
+<label class="font-label-md text-label-md text-on-surface-variant block uppercase tracking-wider">2. PRODUCT DETAILS</label>
+<div class="space-y-xs">
+<input class="w-full h-14 px-sm bg-surface-container-lowest border-none rounded-lg font-body-lg text-body-lg focus:ring-1 focus:ring-primary shadow-sm" placeholder="Listing title" required="" type="text"/>
+<textarea class="w-full p-sm bg-surface-container-lowest border-none rounded-lg font-body-lg text-body-lg focus:ring-1 focus:ring-primary shadow-sm" placeholder="Item description (condition, brand, history...)" required="" rows="4"></textarea>
+</div>
+</section>
+<!-- Step 3: Category Selector -->
+<section class="space-y-sm">
+<label class="font-label-md text-label-md text-on-surface-variant block uppercase tracking-wider">3. CATEGORY</label>
+<div class="flex flex-wrap gap-xs">
+<button class="px-sm py-xs rounded-full font-label-md text-label-md bg-primary text-on-primary shadow-sm" type="button">Electronics</button>
+<button class="px-sm py-xs rounded-full font-label-md text-label-md bg-surface-variant text-on-surface hover:bg-surface-container-highest transition-colors" type="button">Clothing</button>
+<button class="px-sm py-xs rounded-full font-label-md text-label-md bg-surface-variant text-on-surface hover:bg-surface-container-highest transition-colors" type="button">Home</button>
+<button class="px-sm py-xs rounded-full font-label-md text-label-md bg-surface-variant text-on-surface hover:bg-surface-container-highest transition-colors" type="button">Hobbies</button>
+<button class="px-sm py-xs rounded-full font-label-md text-label-md bg-surface-variant text-on-surface hover:bg-surface-container-highest transition-colors" type="button">Other</button>
+</div>
+</section>
+<!-- Step 4: What are you looking for? -->
+<section class="space-y-sm">
+<label class="font-label-md text-label-md text-on-surface-variant block uppercase tracking-wider">4. WHAT ARE YOU LOOKING FOR?</label>
+<div class="relative group">
+<div class="absolute left-sm top-1/2 -translate-y-1/2">
+<span class="material-symbols-outlined text-primary">swap_calls</span>
+</div>
+<input class="w-full h-14 pl-12 pr-sm bg-surface-container-lowest border-none rounded-lg font-body-lg text-body-lg focus:ring-1 focus:ring-primary shadow-sm" placeholder="Ex: A bike, a console, books..." type="text"/>
+</div>
+<div class="bg-primary-container/10 p-sm rounded-lg flex items-start gap-xs mt-xs">
+<span class="material-symbols-outlined text-primary text-sm mt-0.5">info</span>
+<p class="font-body-sm text-body-sm text-secondary">Be precise to increase your chances of getting a relevant swap.</p>
+</div>
+</section>
+<!-- Trust Badge -->
+<div class="flex items-center justify-center gap-xs py-md">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">verified</span>
+<span class="font-label-md text-label-md text-on-surface-variant">Verified by the SwapIt community</span>
+</div>
+</form>
+</main>
+<!-- Sticky Submit Button -->
+<div class="fixed bottom-[84px] left-0 w-full px-margin-mobile py-4 bg-gradient-to-t from-surface-container-lowest via-surface-container-lowest to-transparent z-40">
+<button class="w-full h-14 bg-primary text-on-primary rounded-xl font-button text-button shadow-lg active:scale-95 transition-all duration-200 flex items-center justify-center gap-xs" type="submit">
+            Publish my listing
+            <span class="material-symbols-outlined">send</span>
+</button>
+</div>
+<!-- BottomNavBar -->
+<nav class="bg-surface-container-lowest docked full-width bottom-0 h-[84px] rounded-t-xl border-t border-outline-variant shadow-[0px_-4px_20px_rgba(27,67,50,0.05)] fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe">
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all duration-150 active:scale-90">
+<span class="material-symbols-outlined">explore</span>
+<span class="font-label-md text-label-md">Discover</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all duration-150 active:scale-90">
+<span class="material-symbols-outlined">swap_horiz</span>
+<span class="font-label-md text-label-md">Swaps</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 transition-all duration-150 active:scale-90 shadow-sm">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+<span class="font-label-md text-label-md">Add</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all duration-150 active:scale-90">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</button>
+</nav>
+</body></html>

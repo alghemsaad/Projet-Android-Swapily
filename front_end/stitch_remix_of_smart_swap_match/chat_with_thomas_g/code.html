@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+                  "surface-variant": "#c1ecd4",
+                  "secondary-container": "#b0f1cc",
+                  "inverse-primary": "#95d4b3",
+                  "tertiary": "#364d3c",
+                  "secondary-fixed-dim": "#94d4b1",
+                  "on-tertiary-container": "#c6e1ca",
+                  "surface-container-low": "#d1fee5",
+                  "on-background": "#002114",
+                  "on-primary-fixed": "#002114",
+                  "surface": "#e8fff0",
+                  "on-secondary-fixed-variant": "#0c5136",
+                  "tertiary-fixed": "#cee9d3",
+                  "on-primary-fixed-variant": "#0e5138",
+                  "primary-fixed-dim": "#95d4b3",
+                  "inverse-on-surface": "#cffbe2",
+                  "surface-dim": "#b8e4cc",
+                  "on-tertiary": "#ffffff",
+                  "primary-container": "#2d6a4f",
+                  "primary": "#0f5238",
+                  "surface-container-high": "#c6f2da",
+                  "on-error": "#ffffff",
+                  "surface-tint": "#2c694e",
+                  "on-secondary-fixed": "#002113",
+                  "primary-fixed": "#b1f0ce",
+                  "on-secondary": "#ffffff",
+                  "background": "#e8fff0",
+                  "surface-container-lowest": "#ffffff",
+                  "error": "#ba1a1a",
+                  "on-secondary-container": "#327053",
+                  "on-tertiary-fixed": "#092012",
+                  "surface-container": "#ccf8df",
+                  "on-surface": "#002114",
+                  "surface-bright": "#e8fff0",
+                  "tertiary-fixed-dim": "#b3cdb7",
+                  "on-primary": "#ffffff",
+                  "on-tertiary-fixed-variant": "#354c3b",
+                  "on-surface-variant": "#404943",
+                  "secondary-fixed": "#b0f1cc",
+                  "surface-container-highest": "#c1ecd4",
+                  "on-primary-container": "#a8e7c5",
+                  "secondary": "#2b694d",
+                  "inverse-surface": "#0e3727",
+                  "outline-variant": "#bfc9c1",
+                  "on-error-container": "#93000a",
+                  "error-container": "#ffdad6",
+                  "tertiary-container": "#4d6553",
+                  "outline": "#707973"
+          },
+          "borderRadius": {
+                  "DEFAULT": "0.25rem",
+                  "lg": "0.5rem",
+                  "xl": "0.75rem",
+                  "full": "9999px"
+          },
+          "spacing": {
+                  "lg": "32px",
+                  "xl": "48px",
+                  "gutter-mobile": "12px",
+                  "base": "4px",
+                  "md": "24px",
+                  "sm": "16px",
+                  "margin-mobile": "20px",
+                  "xs": "8px"
+          },
+          "fontFamily": {
+                  "headline-lg-mobile": ["Plus Jakarta Sans"],
+                  "body-sm": ["Plus Jakarta Sans"],
+                  "body-lg": ["Plus Jakarta Sans"],
+                  "button": ["Plus Jakarta Sans"],
+                  "label-md": ["Plus Jakarta Sans"],
+                  "headline-lg": ["Plus Jakarta Sans"],
+                  "headline-md": ["Plus Jakarta Sans"]
+          },
+          "fontSize": {
+                  "headline-lg-mobile": ["26px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                  "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                  "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                  "button": ["16px", {"lineHeight": "20px", "fontWeight": "600"}],
+                  "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                  "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                  "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+          }
+        },
+      },
+    }
+  </script>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface font-body-sm text-on-surface flex flex-col min-h-screen">
+<!-- TopAppBar Strategy: suppress global TopAppBar for task-focused Chat screen -->
+<header class="bg-surface dark:bg-surface-dim shadow-[0px_4px_20px_rgba(27,67,50,0.05)] sticky top-0 z-50 flex items-center justify-between px-margin-mobile h-16">
+<div class="flex items-center gap-xs">
+<button class="p-xs hover:bg-surface-container-highest transition-colors rounded-full active:scale-95 duration-200">
+<span class="material-symbols-outlined text-primary">arrow_back</span>
+</button>
+<div class="flex items-center gap-xs ml-base">
+<div class="w-10 h-10 rounded-full overflow-hidden bg-surface-container border border-outline-variant">
+<img alt="" class="w-full h-full object-cover" data-alt="A high-quality studio portrait of a friendly man in his late 20s with a warm smile, set against a clean, minimal sage green background. The lighting is soft and professional, emphasizing a trustworthy and neighborly persona. The overall aesthetic is modern, clean, and minimalist, consistent with a premium peer-to-peer exchange platform interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDzYLyyXkrqxdU_EuzPFwGKAql6GRL6mYh7UQmcPP1AKoDNHH8DR7h1Bridw4UzhPMcx0qY0uVcJfv4e6Vm3uopessbE23Nbq85duteZxiKzg3IejM3XtSIxEkBgTFYt9KbNPkPRVODle4sm8Mzb4lmRD0FJE-6DtcZd5fyOhCBeQUw9cEnpq3mkD0CdzEjuLW6Q0_oaLBhCiV3dK3Yg8fODq08xZcGqecS0yiJIxS7AfQ-uCj-jpe9sJDpE6-2no6Ag_xchMwfthc"/>
+</div>
+<div>
+<div class="flex items-center gap-xs">
+<span class="font-headline-md text-headline-md-mobile text-primary tracking-tight">Marcus K.</span>
+<span class="material-symbols-outlined text-[16px] text-primary" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<p class="font-label-md text-label-md text-on-surface-variant -mt-1">Active now</p>
+</div>
+</div>
+</div>
+<button class="p-xs hover:bg-surface-container-highest transition-colors rounded-full active:scale-95 duration-200">
+<span class="material-symbols-outlined text-primary">more_vert</span>
+</button>
+</header>
+<main class="flex-1 flex flex-col">
+<!-- Swap Details Header (Bento Style) -->
+<section class="mx-margin-mobile mt-md mb-md">
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-sm shadow-[0px_4px_20px_rgba(27,67,50,0.05)] overflow-hidden">
+<div class="flex items-center justify-between mb-sm px-base">
+<h2 class="font-label-md text-label-md uppercase text-on-surface-variant tracking-widest">Ongoing Swap Proposal</h2>
+<span class="bg-surface-variant text-primary px-xs py-1 rounded-full font-label-md text-[10px] uppercase">Awaiting Confirmation</span>
+</div>
+<div class="grid grid-cols-7 items-center gap-base">
+<!-- Your Item -->
+<div class="col-span-3 flex flex-col items-center">
+<div class="w-full aspect-square rounded-lg bg-surface-container overflow-hidden mb-xs relative border border-outline-variant">
+<img alt="" class="w-full h-full object-cover" data-alt="A minimalist, high-fidelity close-up of a sleek silver mechanical watch with a brown leather strap, resting on a clean white marble surface. The lighting is bright and neutral, emphasizing the premium quality of the item. The composition is structured and modern, reflecting the sophisticated aesthetic of an eco-conscious digital marketplace." src="https://lh3.googleusercontent.com/aida-public/AB6AXuArpxpz6RRB8-XUhcS708KKVchrbuAmrtnZY593E-QUZlUUdgvNsDPgUWGCbiY30jnqLEaqECsEoENhXoVbsAwXDyYnQDYMtPRSWuz10Y3bjQLEmXRhAiPivpPPVpwqTXmpBv5DEgtukMpT3TEOG3mAb1j11bgrDjbgMaND_kHtxszDbmaAq0wE6lIHyN8n3U7Sroqu1vzKy8fJ7903ZqZky0ujrbFfKO669Rhz7m5IIqbTij4k93JKgsm6H-yFvLYCr0Trlm_ABXE"/>
+<span class="absolute top-xs right-xs bg-tertiary-container text-on-tertiary-container font-label-md text-[10px] px-xs py-0.5 rounded-full">Like New</span>
+</div>
+<span class="font-button text-body-sm text-primary text-center">Fossil Heritage Watch</span>
+</div>
+<!-- Swap Icon -->
+<div class="col-span-1 flex justify-center">
+<div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-on-primary shadow-sm">
+<span class="material-symbols-outlined text-[18px]">swap_horiz</span>
+</div>
+</div>
+<!-- Their Item -->
+<div class="col-span-3 flex flex-col items-center">
+<div class="w-full aspect-square rounded-lg bg-surface-container overflow-hidden mb-xs relative border border-outline-variant">
+<img alt="" class="w-full h-full object-cover" data-alt="A professional DSLR camera with a high-end lens, captured in a clean, minimalist studio setting with bright, even lighting. The camera is placed against a soft sage green background that matches the brand's primary color palette. The image quality is crisp and detailed, projecting value and professional-grade photography gear for a peer-to-peer exchange." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTvefWePEsy4RGtUUcHtMPevDt691syoXEvsID9XoTEd82BOH6s6lG5SQrj57SbxWY0JG5zbrqTN7oZPIIBM3vHFfRfC1egd-EzJWuYKyw_VFNElqF8qTymi4Tb4XO9C4-3Wk62wJ1uL8ZYuBC8Jc-ScNxAzKpTBQnB07-X8tQm9goB4K3xgTIN78bte6ebwRXhKC4rGsSM1Tkzc9QcXbV9axG-5d9gBtjCFmCb1wEKb4g75MdVlwBkHDrB7SAx6eO54okAG72BPA"/>
+<span class="absolute top-xs right-xs bg-tertiary-container text-on-tertiary-container font-label-md text-[10px] px-xs py-0.5 rounded-full">Excellent</span>
+</div>
+<span class="font-button text-body-sm text-primary text-center">Canon EOS 90D</span>
+</div>
+</div>
+<button class="w-full mt-md bg-primary text-on-primary font-button text-button py-sm rounded-lg active:scale-95 transition-all shadow-[0px_4px_12px_rgba(15,82,56,0.2)]">
+          Confirm Swap
+        </button>
+</div>
+</section>
+<!-- Chat Bubbles Canvas -->
+<div class="flex-1 flex flex-col gap-md px-margin-mobile overflow-y-auto pb-xl scrollbar-hide">
+<!-- Date Divider -->
+<div class="flex justify-center my-base">
+<span class="bg-surface-container-high text-on-surface-variant font-label-md text-[11px] px-sm py-0.5 rounded-full uppercase tracking-tighter">Tuesday, Oct 24</span>
+</div>
+<!-- Received Message -->
+<div class="flex items-end gap-xs max-w-[85%]">
+<div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-outline-variant mb-base">
+<img alt="" class="w-full h-full object-cover" data-alt="User profile avatar of Marcus, a friendly professional man. Minimalist lighting and studio background." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDuwC1BYuEUyUozxg9NS3kmVzr2SIIGl2DGN-tUizHG8u1pumkxFZUPV6EwBBhctFuCMy2CFcLJPESLZcsBn7Tq0n1orYJWDbXXddAjd3CdxEImDuJqHSN27BbY37O6wLBPdNG9B4tpoyYC5Q-tYmgH_vpc2zajzr6S-A91sIme042XatgXL8DVIfBiVYXFVLIbFK6fjIynbztGQGqZvG-1ROk3Sju3pTS9tXEhx7w2vQjxDNRhdVbH-Pk8Puu48afmUOQleh4tBUw"/>
+</div>
+<div class="flex flex-col gap-1">
+<div class="bg-surface-container-highest text-on-surface px-sm py-sm rounded-t-xl rounded-br-xl rounded-bl-xs shadow-sm">
+<p class="font-body-lg text-body-lg leading-relaxed">Hey! I saw your watch listing. I've been looking for that exact model to gift my brother. Would you be interested in the Canon camera I have listed?</p>
+</div>
+<span class="text-[10px] text-on-surface-variant font-label-md ml-base">10:15 AM</span>
+</div>
+</div>
+<!-- Sent Message -->
+<div class="flex flex-col items-end gap-1 self-end max-w-[85%]">
+<div class="bg-primary text-on-primary px-sm py-sm rounded-t-xl rounded-bl-xl rounded-br-xs shadow-[0px_4px_12px_rgba(15,82,56,0.1)]">
+<p class="font-body-lg text-body-lg leading-relaxed">Hi Marcus! Yes, the Canon 90D looks great. Is the lens in good condition? No scratches?</p>
+</div>
+<div class="flex items-center gap-xs mr-base">
+<span class="text-[10px] text-on-surface-variant font-label-md">10:18 AM</span>
+<span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings: 'FILL' 1;">done_all</span>
+</div>
+</div>
+<!-- Received Message with Image -->
+<div class="flex items-end gap-xs max-w-[85%]">
+<div class="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 border border-outline-variant mb-base">
+<img alt="" class="w-full h-full object-cover" data-alt="User profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD5a_0RLKW2t5UrTIfb-ed1CqCjhS_YCQFOCJdXYECzYNixeCKCdQtMxqCZCJQ0FARu5gif5BXPe-7P5SBPPXBv_ZY34q2u4dNrcdamclFlbrZSy6uU74su1mmDqcgAgeonRLfl7AUKFlCFfjiA7QdxSMS50DWoMtOH06AVPxyM7CGFti0pfyqVyymB5WwTiBP8Fbkh-E2wCzNCBt8JSTeoWw8dQ_ASrNIz2kIoAQYhqzhfjfWiSjL5O0eoIrWBtZQvAv7pKE-5Ye0"/>
+</div>
+<div class="flex flex-col gap-1">
+<div class="bg-surface-container-highest text-on-surface px-sm py-sm rounded-t-xl rounded-br-xl rounded-bl-xs shadow-sm space-y-sm">
+<p class="font-body-lg text-body-lg leading-relaxed">It's pristine! Here's a closer shot of the glass. Always kept it under a UV filter.</p>
+<div class="w-full aspect-[4/3] rounded-lg overflow-hidden bg-surface-container">
+<img alt="" class="w-full h-full object-cover" data-alt="A detailed macro photograph of a professional camera lens showing a crystal clear glass surface with no scratches. The lighting is soft and directional, highlighting the premium quality of the optics. The background is a clean studio environment, maintaining the minimalist and professional visual language of the SwapIt brand." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAh6XrxJr5zF8hGOp5z3N1I2OWVOlBWTxlzg5tvYRueSUYlREiTs-vodk6jvaeN41nXlhcfIjm-ZKNSMiURSVksXIsctC5IT7pz59VKLDxSMgoRbAJYu_GwjGdKrOAyc0nib8rWQ5NuuoK9vtIIKFoPLF-O9_lydLVccTQhWrcWMwov3Ez8zu7p9cihvkkMjCxI6vn5hg_5XzsTkBgYW1Vvk3-L59188locJzXMbHWcegRmSU2qPQNr2hDq_e4-VPBuuBVfe-PPgtQ"/>
+</div>
+</div>
+<span class="text-[10px] text-on-surface-variant font-label-md ml-base">10:20 AM</span>
+</div>
+</div>
+<!-- Sent Message -->
+<div class="flex flex-col items-end gap-1 self-end max-w-[85%]">
+<div class="bg-primary text-on-primary px-sm py-sm rounded-t-xl rounded-bl-xl rounded-br-xs shadow-[0px_4px_12px_rgba(15,82,56,0.1)]">
+<p class="font-body-lg text-body-lg leading-relaxed">Looks perfect. I'm happy to move forward with the swap if you are! I've updated the swap proposal details above.</p>
+</div>
+<div class="flex items-center gap-xs mr-base">
+<span class="text-[10px] text-on-surface-variant font-label-md">10:22 AM</span>
+<span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings: 'FILL' 1;">done_all</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Input Area (Fixed Bottom) -->
+<footer class="bg-surface-container-lowest p-margin-mobile pb-safe shadow-[0px_-4px_20px_rgba(27,67,50,0.05)] border-t border-outline-variant">
+<div class="flex items-center gap-sm">
+<button class="text-primary p-xs hover:bg-surface-container-highest rounded-full transition-colors active:scale-90 duration-150">
+<span class="material-symbols-outlined">add_circle</span>
+</button>
+<div class="flex-1 bg-surface-container-low rounded-full px-sm py-base flex items-center gap-xs border border-transparent focus-within:border-primary transition-all">
+<input class="flex-1 bg-transparent border-none focus:ring-0 font-body-lg text-body-lg text-on-surface placeholder:text-outline py-2" placeholder="Type a message..." type="text"/>
+<button class="text-on-surface-variant hover:text-primary p-base transition-colors">
+<span class="material-symbols-outlined text-[20px]">sentiment_satisfied</span>
+</button>
+<button class="text-on-surface-variant hover:text-primary p-base transition-colors">
+<span class="material-symbols-outlined text-[20px]">image</span>
+</button>
+</div>
+<button class="w-12 h-12 bg-primary text-on-primary rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform duration-150">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+</footer>
+</body></html>

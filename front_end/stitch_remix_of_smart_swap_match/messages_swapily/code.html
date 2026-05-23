@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<title>Swapily | Messages</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-variant": "#c1ecd4",
+                        "secondary-container": "#b0f1cc",
+                        "inverse-primary": "#95d4b3",
+                        "tertiary": "#364d3c",
+                        "secondary-fixed-dim": "#94d4b1",
+                        "on-tertiary-container": "#c6e1ca",
+                        "surface-container-low": "#d1fee5",
+                        "on-background": "#002114",
+                        "on-primary-fixed": "#002114",
+                        "surface": "#e8fff0",
+                        "on-secondary-fixed-variant": "#0c5136",
+                        "tertiary-fixed": "#cee9d3",
+                        "on-primary-fixed-variant": "#0e5138",
+                        "primary-fixed-dim": "#95d4b3",
+                        "inverse-on-surface": "#cffbe2",
+                        "surface-dim": "#b8e4cc",
+                        "on-tertiary": "#ffffff",
+                        "primary-container": "#2d6a4f",
+                        "primary": "#0f5238",
+                        "surface-container-high": "#c6f2da",
+                        "on-error": "#ffffff",
+                        "surface-tint": "#2c694e",
+                        "on-secondary-fixed": "#002113",
+                        "primary-fixed": "#b1f0ce",
+                        "on-secondary": "#ffffff",
+                        "background": "#e8fff0",
+                        "surface-container-lowest": "#ffffff",
+                        "error": "#ba1a1a",
+                        "on-secondary-container": "#327053",
+                        "on-tertiary-fixed": "#092012",
+                        "surface-container": "#ccf8df",
+                        "on-surface": "#002114",
+                        "surface-bright": "#e8fff0",
+                        "tertiary-fixed-dim": "#b3cdb7",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed-variant": "#354c3b",
+                        "on-surface-variant": "#404943",
+                        "secondary-fixed": "#b0f1cc",
+                        "surface-container-highest": "#c1ecd4",
+                        "on-primary-container": "#a8e7c5",
+                        "secondary": "#2b694d",
+                        "inverse-surface": "#0e3727",
+                        "outline-variant": "#bfc9c1",
+                        "on-error-container": "#93000a",
+                        "error-container": "#ffdad6",
+                        "tertiary-container": "#4d6553",
+                        "outline": "#707973"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "lg": "32px",
+                        "xl": "48px",
+                        "gutter-mobile": "12px",
+                        "base": "4px",
+                        "md": "24px",
+                        "sm": "16px",
+                        "margin-mobile": "20px",
+                        "xs": "8px"
+                    },
+                    "fontFamily": {
+                        "headline-lg-mobile": ["Plus Jakarta Sans"],
+                        "body-sm": ["Plus Jakarta Sans"],
+                        "body-lg": ["Plus Jakarta Sans"],
+                        "button": ["Plus Jakarta Sans"],
+                        "label-md": ["Plus Jakarta Sans"],
+                        "headline-lg": ["Plus Jakarta Sans"],
+                        "headline-md": ["Plus Jakarta Sans"]
+                    },
+                    "fontSize": {
+                        "headline-lg-mobile": ["26px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                        "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                        "button": ["16px", {"lineHeight": "20px", "fontWeight": "600"}],
+                        "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body {
+            background-color: #e8fff0;
+            color: #002114;
+        }
+        .message-row-hover:active {
+            background-color: #ccf8df;
+        }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-body-lg text-body-lg">
+<!-- TopAppBar -->
+<header class="fixed top-0 z-50 w-full flex justify-between items-center px-margin-mobile h-16 bg-surface shadow-[0px_4px_20px_rgba(27,67,50,0.05)]">
+<button class="material-symbols-outlined text-primary hover:bg-surface-container-highest transition-colors active:scale-95 transition-transform duration-200 p-2 rounded-full" data-icon="search">search</button>
+<div class="flex items-center gap-2">
+<img alt="Swapily Logo" class="h-8 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8aWLI9JVKu3Z_DgW1sXqIndHweKrZhvDrzsO0HiyBvQ3-PuFiHvTzTz-FVHUSbe7ecDjyfeD4bGcSAW1RW6fmilTgORz_EkA20T_aWxYaE7A8bBvfjlwIMYDQFwAZ4JFvAaUnPLRtXzM-lz_rJ7rHAR4SzvVWHsN2UMk39I-5Cz4aDeA9qtHNJF8spSrAHzd-xxaGEWcP7Mt0YZUomarHq7qr1solKS_-Fh3K51m0SoCv0miFy0BwM3W0QCuvGXBM7ONzFWE0xKE"/>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary tracking-tight">Swapily</h1>
+</div>
+<button class="material-symbols-outlined text-primary hover:bg-surface-container-highest transition-colors active:scale-95 transition-transform duration-200 p-2 rounded-full" data-icon="notifications">notifications</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 mt-16 mb-[84px] px-margin-mobile py-md">
+<div class="flex items-center justify-between mb-sm">
+<h2 class="font-headline-md text-headline-md text-primary">Messages</h2>
+<div class="flex gap-xs">
+<span class="bg-primary text-on-primary font-label-md text-label-md px-3 py-1 rounded-full">Active</span>
+<span class="bg-surface-variant text-on-surface-variant font-label-md text-label-md px-3 py-1 rounded-full">Archive</span>
+</div>
+</div>
+<!-- Chat List Section -->
+<div class="space-y-base">
+<!-- Message Item 1 (Unread State) -->
+<div class="relative flex items-center gap-sm p-sm bg-surface-container-lowest rounded-xl shadow-[0px_4px_20px_rgba(27,67,50,0.05)] border border-outline-variant/10 active:scale-[0.98] transition-all duration-150">
+<div class="relative flex-shrink-0">
+<img alt="Avatar" class="w-14 h-14 rounded-full object-cover border-2 border-primary-fixed" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDi_zT2xreab3j0_Nb9fRTI-DC3flU1iOvIfiogRsEjfNJ8WAQNrXTv-CvuqPz9LDh4NXXzX_VBKWGVgGrvv_7iL8e8QYdu61poZHFXS1OPtCuEiyTEw41C1DRcV-le6XpsIVdTpjQX8CsjtTdhxSHkuDulxnt1pFA-q--j51E0bLJt22pcO-zS1LEj2JpkoYW__-WjQ0AYkdrgowLsKBtVlZ75CLKudtnG3M7S6QHP8rNqscRZTZiPH_-UWaAK_lqIzpFd4uZJfhU"/>
+<div class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-primary rounded-full border-2 border-white"></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline">
+<h3 class="font-headline-md text-headline-md-mobile text-on-surface truncate">Elena Green</h3>
+<span class="font-label-md text-label-md text-primary font-bold">14:02</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface font-semibold truncate pr-4">Is the vintage film camera still available for the swap?</p>
+</div>
+<div class="flex-shrink-0 ml-xs">
+<img alt="Swap Item" class="w-12 h-12 rounded-lg object-cover border border-outline-variant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCw39L32zZG_pV35OXLnJT-36oBVF4nT9C282xjS83qFLCKp82lnE1euqzVWqEP8k8eGeM5X3Lxu1Nf-Jn9LMMJhY2EeBJlSX5KHWuVU7eWx1rGXovOTXfSoE6AIsKEJCy6EKcnxNIusq7HlGbRrLu2Kbw1KsgT2h08kNqYisL49AHfoMiMflFrx9GmaTESJq-IXxcqFmYppqivjuX3lm1Su7UIDR73w7QpydB4FaHpd2B3TDZR_KOanIxt_Dw-WR2QsK_GDCrWjxY"/>
+<div class="mt-1 flex justify-end">
+<span class="w-2.5 h-2.5 bg-primary rounded-full"></span>
+</div>
+</div>
+</div>
+<!-- Message Item 2 -->
+<div class="flex items-center gap-sm p-sm bg-surface-container-lowest rounded-xl shadow-[0px_4px_20px_rgba(27,67,50,0.05)] active:scale-[0.98] transition-all duration-150">
+<div class="flex-shrink-0">
+<img alt="Avatar" class="w-14 h-14 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAqfPay7iH9hhfkrmn2R_2ic7XQt-_XJ_AoxsaeqTu0pWYOx7HltV9MlU39xngI45FjVq3BVDEPGCX3c9AV3sA8ocVWneN3d7FQr4eqxQkHTObViN6ZEHkTpnhGO3mcy3t98KQ3fOjFeK9kwY2Ve_r-VRg6W8DaBg8_Whre-au6s4fSj-MG4-xojhbKJ-Z2uEacsNVIOuMieYSwbOHz23nbHoF7u52qCw9rROHdIQIhmbuQqJCYA20i7Cwfw85mu0Xij8tqFvTz27g"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline">
+<h3 class="font-headline-md text-headline-md-mobile text-on-surface truncate">Marcus Chen</h3>
+<span class="font-label-md text-label-md text-on-surface-variant">Yesterday</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">I can meet you at the central park eco-market at 10 AM...</p>
+</div>
+<div class="flex-shrink-0 ml-xs">
+<img alt="Swap Item" class="w-12 h-12 rounded-lg object-cover grayscale-[20%]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQ5LmgoLy4FVM8V-5rFxzA8VQtjGFnMc3vJdMd4cTAt5sg0epYaIkqH3uAOAyuz_2tBD6ouMDgGxJaotKnLXwo7Fxl0Y1JfVE9rhmLzZhGP7hFn-TuOXYueSkL3aXMmaNoyF_Z-WCwePdRm8gmHwhj5hN_uZJZtTJ31kQfJMjVnKmHFZu_x54AQp5kF2AoGHSGWaqRNBWNJ_zkYQ4C6ve9v7RWvt62uktgcXAl7ho1Z0EgAhKSOW8xnhOwXENUbvjvOlSxnQmLWOg"/>
+</div>
+</div>
+<!-- Message Item 3 -->
+<div class="flex items-center gap-sm p-sm bg-surface-container-lowest rounded-xl shadow-[0px_4px_20px_rgba(27,67,50,0.05)] active:scale-[0.98] transition-all duration-150">
+<div class="flex-shrink-0">
+<img alt="Avatar" class="w-14 h-14 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAw5IycHCQzbuyMGF9jcwyVABMSSbK73b9-6Wpq38VraW_cXhCFZtq9WgpHnlchADHGb65qMCHmUAQQuC6xsVEAV9Jok7Xk7L9ZT9nhQBueVcJGV9SDU5v_onRaN9Vf1avZkV7jXfuTMuk6jMdzVfGvBf1hcC7EAiEv9uW_nEAaVbjPe9yYWpd9M40ehx6B8-WP8fSxLtveIkr1z_Uj-mFsti5mXCpTu4XyQIzeaSSnzBZmb53y6O4HuXMOw_iKKOjB3sImK4yp7PM"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline">
+<div class="flex items-center gap-xs">
+<h3 class="font-headline-md text-headline-md-mobile text-on-surface truncate">Sarah Miller</h3>
+<span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+<span class="font-label-md text-label-md text-on-surface-variant">Tuesday</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">Thanks again for the succulent pots! They look great in my...</p>
+</div>
+<div class="flex-shrink-0 ml-xs">
+<img alt="Swap Item" class="w-12 h-12 rounded-lg object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCjkaZEHMzjivW4XtEE_kIlSuZEhCb_A5gGv9ouSLRPAqWCBlyf3fczTKq1HYLT6i34v_sATLGBeVL2gIprzr0CH3ZXvYNlqVZq0uMPRr42PdQKo31EmKXSud5mglx2Egh81RoEgHxtd9B0iE37JSV7nsdS73tnpQET0FCNg5bBS-NqcUemHjwwOAX8iwP8UvuY1hcph2fnVoZoKbuQliIZ0qECeOltTkHNngCmkzstrxgaR1x_DmTsV6gU36t85tH3-dAyGJK_yR4"/>
+</div>
+</div>
+<!-- Message Item 4 -->
+<div class="flex items-center gap-sm p-sm bg-surface-container-lowest rounded-xl shadow-[0px_4px_20px_rgba(27,67,50,0.05)] active:scale-[0.98] transition-all duration-150">
+<div class="flex-shrink-0">
+<img alt="Avatar" class="w-14 h-14 rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCMKe6hGikz0vVoVwDyzfxgBwKcFGENgAqcoUEyOA73q0ziryA_rv4KER4pmIWgiAs3s1XCS7dPhct8ipIkOXSPL4rbKbJcbxe50xaTlxWol1AcMprfF5EgKefpGl_5_cwmr1qVYLo9d7LvsPs4SOINjbH-3_kvTsM_88fHamZ4pd6LRizU10cD9BZKKPMhRnF-3FrP8wQDd2Pl3RDj_b6Ch8E0VK8JAaNaLdoRI-FaoxiQ7a7jkE8Lqh5bS0gn9XtqA6ULcHlz6fQ"/>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-baseline">
+<h3 class="font-headline-md text-headline-md-mobile text-on-surface truncate">David Wilson</h3>
+<span class="font-label-md text-label-md text-on-surface-variant">Oct 12</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant truncate">The bike is in great condition. I can drop it off whenever...</p>
+</div>
+<div class="flex-shrink-0 ml-xs">
+<img alt="Swap Item" class="w-12 h-12 rounded-lg object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDnfBWTs0Xgi28_Pn415A7mXDSPHYYOb9ahMxaw1sTLAZ1mPDMdf1l9wfqrUVS6un7og16eLaXemHg23f2emFWiYZf_QR_TnmMk1cgjqtW3hy68qTr1tvINWxG3xleJyxNvZ7FmnfcBUvl3sMWJAT_RsSr-p2UktdakS5psg3fEHTDGQUc2XM-S8NtAuTCDjsXVtTEQC_viEz6SFhA50nXk0oXqeRoGUsk2Mo-9Y6s8U4tHKz6cGj_1WuZnGEbGU95gpbRbDDypomk"/>
+</div>
+</div>
+</div>
+<!-- Empty State Prompt (Subtle) -->
+<div class="mt-xl text-center">
+<p class="font-body-sm text-body-sm text-on-surface-variant">Looking for older conversations? <a class="text-primary font-bold" href="#">Search history</a></p>
+</div>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe bg-surface-container-lowest h-[84px] rounded-t-xl border-t border-outline-variant shadow-[0px_-4px_20px_rgba(27,67,50,0.05)]">
+<!-- Discover -->
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all duration-150 active:scale-90 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="font-label-md text-label-md">Discover</span>
+</div>
+<!-- Swaps (Active State for Messages screen intent) -->
+<div class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 active:scale-90 transition-all duration-150 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="swap_horiz">swap_horiz</span>
+<span class="font-label-md text-label-md">Swaps</span>
+</div>
+<!-- Add -->
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all duration-150 active:scale-90 cursor-pointer">
+<span class="material-symbols-outlined text-primary scale-125" data-icon="add_circle" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+<span class="font-label-md text-label-md">Add</span>
+</div>
+<!-- Profile -->
+<div class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary transition-all duration-150 active:scale-90 cursor-pointer">
+<span class="material-symbols-outlined" data-icon="person">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</div>
+</nav>
+</body></html>

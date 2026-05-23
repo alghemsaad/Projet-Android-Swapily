@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .bg-pattern-dots {
+            background-image: radial-gradient(circle, #c1ecd4 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #e8fff0; /* background from theme */
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "surface-container-highest": "#c1ecd4",
+                      "on-tertiary": "#ffffff",
+                      "primary-fixed": "#b1f0ce",
+                      "on-primary-fixed": "#002114",
+                      "primary": "#0f5238",
+                      "on-primary": "#ffffff",
+                      "inverse-primary": "#95d4b3",
+                      "on-secondary-container": "#327053",
+                      "on-tertiary-fixed": "#092012",
+                      "surface-dim": "#b8e4cc",
+                      "surface": "#e8fff0",
+                      "on-background": "#002114",
+                      "on-secondary": "#ffffff",
+                      "surface-variant": "#c1ecd4",
+                      "on-error-container": "#93000a",
+                      "inverse-on-surface": "#cffbe2",
+                      "outline-variant": "#bfc9c1",
+                      "on-surface": "#002114",
+                      "primary-container": "#2d6a4f",
+                      "surface-container-low": "#d1fee5",
+                      "primary-fixed-dim": "#95d4b3",
+                      "on-tertiary-container": "#c6e1ca",
+                      "outline": "#707973",
+                      "secondary-fixed": "#b0f1cc",
+                      "error": "#ba1a1a",
+                      "on-primary-container": "#a8e7c5",
+                      "on-secondary-fixed": "#002113",
+                      "error-container": "#ffdad6",
+                      "surface-container-lowest": "#ffffff",
+                      "inverse-surface": "#0e3727",
+                      "on-secondary-fixed-variant": "#0c5136",
+                      "secondary-fixed-dim": "#94d4b1",
+                      "tertiary-fixed": "#cee9d3",
+                      "tertiary-fixed-dim": "#b3cdb7",
+                      "surface-container": "#ccf8df",
+                      "secondary": "#2b694d",
+                      "on-error": "#ffffff",
+                      "secondary-container": "#b0f1cc",
+                      "surface-tint": "#2c694e",
+                      "on-surface-variant": "#404943",
+                      "on-tertiary-fixed-variant": "#354c3b",
+                      "tertiary": "#364d3c",
+                      "surface-container-high": "#c6f2da",
+                      "background": "#e8fff0",
+                      "on-primary-fixed-variant": "#0e5138",
+                      "surface-bright": "#e8fff0",
+                      "tertiary-container": "#4d6553"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "xs": "8px",
+                      "xl": "48px",
+                      "sm": "16px",
+                      "base": "4px",
+                      "margin-mobile": "20px",
+                      "gutter-mobile": "12px",
+                      "md": "24px",
+                      "lg": "32px"
+              },
+              "fontFamily": {
+                      "headline-lg": ["Plus Jakarta Sans"],
+                      "headline-lg-mobile": ["Plus Jakarta Sans"],
+                      "body-sm": ["Plus Jakarta Sans"],
+                      "headline-md": ["Plus Jakarta Sans"],
+                      "label-md": ["Plus Jakarta Sans"],
+                      "body-lg": ["Plus Jakarta Sans"],
+                      "button": ["Plus Jakarta Sans"]
+              },
+              "fontSize": {
+                      "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "headline-lg-mobile": ["26px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                      "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+                      "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "600"}],
+                      "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                      "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "button": ["16px", {"lineHeight": "20px", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-background text-on-background min-h-screen pb-32">
+<!-- TopAppBar -->
+<header class="bg-surface shadow-[0px_4px_20px_rgba(27,67,50,0.05)] docked full-width top-0 sticky z-50">
+<div class="flex justify-between items-center w-full px-margin-mobile h-16">
+<button class="text-primary hover:bg-surface-container-highest transition-colors active:scale-95 transition-transform duration-200 p-2 rounded-full">
+<span class="material-symbols-outlined">search</span>
+</button>
+<div class="flex items-center gap-2">
+<img alt="Swapily Logo" class="w-8 h-8 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8aWLI9JVKu3Z_DgW1sXqIndHweKrZhvDrzsO0HiyBvQ3-PuFiHvTzTz-FVHUSbe7ecDjyfeD4bGcSAW1RW6fmilTgORz_EkA20T_aWxYaE7A8bBvfjlwIMYDQFwAZ4JFvAaUnPLRtXzM-lz_rJ7rHAR4SzvVWHsN2UMk39I-5Cz4aDeA9qtHNJF8spSrAHzd-xxaGEWcP7Mt0YZUomarHq7qr1solKS_-Fh3K51m0SoCv0miFy0BwM3W0QCuvGXBM7ONzFWE0xKE"/>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary tracking-tight">Swapily</h1>
+</div>
+<button class="text-primary hover:bg-surface-container-highest transition-colors active:scale-95 transition-transform duration-200 p-2 rounded-full">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</header>
+<main class="max-w-xl mx-auto px-margin-mobile pt-sm space-y-md">
+<!-- Profile Section -->
+<section class="bg-surface-container-lowest rounded-xl p-sm shadow-[0px_4px_20px_rgba(27,67,50,0.05)] border border-outline-variant/30 overflow-hidden relative">
+<div class="absolute top-0 right-0 w-32 h-32 bg-pattern-dots opacity-20 -mr-16 -mt-16 rounded-full"></div>
+<div class="flex flex-col items-center relative z-10">
+<div class="relative">
+<img class="w-24 h-24 rounded-full object-cover border-4 border-primary-fixed shadow-md" data-alt="A professional studio portrait of a friendly man in his early 30s with a warm, genuine smile." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlB-a5yCel8suEmVVg15vgEV4Hu-SRR0nYH4MVfxm0OEFZxm-34VbpvUAwDIU5pBholgc7C0KNpCWXuoFRu75h9O54j6sEur32EZhVDTK3N14H2EhxgsKd7sQyi8S4eAUGMMDuxhz9V1qq8QZpCH-pq1V0SAEGC_2EfnxAMQCpw7CoZsoGiZlM6XWuDWg-Zer4QkEmZCzQL9Lt_VGHzv9gixpHizg94VuOYfKmfa8aCoIg3c5t7mx2AD41TM693IKErDa4iLWHIbI"/>
+<div class="absolute bottom-0 right-0 bg-primary text-on-primary rounded-full p-1 border-2 border-surface-container-lowest shadow-sm flex items-center justify-center">
+<span class="material-symbols-outlined text-[14px]" style="font-variation-settings: 'FILL' 1;">verified</span>
+</div>
+</div>
+<h2 class="font-headline-md text-headline-md text-on-surface mt-base">Julien Bernard</h2>
+<div class="flex items-center space-x-base mt-1">
+<span class="material-symbols-outlined text-primary text-body-lg" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-md text-label-md text-on-surface-variant">4.9 (42 reviews)</span>
+</div>
+<div class="flex items-center space-x-1 mt-1 text-on-surface-variant opacity-80">
+<span class="material-symbols-outlined text-[16px]">location_on</span>
+<span class="font-body-sm text-body-sm">Lyon, France</span>
+</div>
+</div>
+<div class="grid grid-cols-3 gap-xs mt-sm pt-sm border-t border-outline-variant/20">
+<div class="text-center">
+<p class="font-headline-md text-headline-md text-primary">15</p>
+<p class="font-label-md text-label-md text-on-surface-variant">Items</p>
+</div>
+<div class="text-center border-x border-outline-variant/20">
+<p class="font-headline-md text-headline-md text-primary">28</p>
+<p class="font-label-md text-label-md text-on-surface-variant">Swaps</p>
+</div>
+<div class="text-center">
+<p class="font-headline-md text-headline-md text-primary">12kg</p>
+<p class="font-label-md text-label-md text-on-surface-variant">CO2 Saved</p>
+</div>
+</div>
+</section>
+<!-- My Swaps Section -->
+<section>
+<div class="flex items-center justify-between mb-sm">
+<h3 class="font-headline-md text-headline-md text-on-surface">My Swaps</h3>
+<span class="material-symbols-outlined text-on-surface-variant">tune</span>
+</div>
+<div class="flex p-1 bg-surface-container-high rounded-full mb-sm">
+<button class="flex-1 py-2 font-button text-button rounded-full bg-primary text-on-primary shadow-sm">Ongoing</button>
+<button class="flex-1 py-2 font-button text-button rounded-full text-on-surface-variant hover:text-primary transition-colors">History</button>
+</div>
+<!-- Trade Card -->
+<div class="bg-surface-container-lowest rounded-xl p-sm border border-outline-variant/30 flex items-center gap-sm shadow-sm">
+<div class="flex -space-x-4">
+<img class="w-16 h-16 rounded-lg object-cover border-2 border-surface-container-lowest" data-alt="Pristine white high-top sneakers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAkDfd6D3jmUyFV4VoBVJx-ADCKFlKw6MnI5rfg9yCPtn9BrI5yCmpsu7fbHBytYBEzZewRsfIClzInGqYaUHNTQcVNUjABpIJzLcAhZBDfkHty3FJ4RSk1I3UbMz2ti_n90cN2hX2Htqcs15kvr_kPD8nYSGlBRsOe8evPcQSZSZZ7LKcxmcw1INN47QStrQVtXwAltF1mRcpYknQjTNbGQOciIe9xRAu5bldvQymX3mGGi6q78qhKWmYgCZs3ATqj98J1jTRQdDQ"/>
+<div class="w-16 h-16 rounded-lg bg-surface-container flex items-center justify-center border-2 border-surface-container-lowest">
+<span class="material-symbols-outlined text-primary">swap_horiz</span>
+</div>
+<img class="w-16 h-16 rounded-lg object-cover border-2 border-surface-container-lowest" data-alt="Sleek metallic tablet device" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAjxWFVqXzLu3_ElD3nUmPKeN8SaYsndTwwP56ywCNMb1qu3jkjHkHy8J4UTALypEYFQTLcjDbTOharu8VA7XjW59zOC2NlGQRl7itFd4uf4Xxm-_1ahQCuZ8IL8BX-TtlCvOyk4t0HzXeeH3lYM0jh4m6717m8JKJOCOeH8DGtDdrEHDjmck-3mK95CEHTCE1p101jxLlqewGlBnB8Ech8IFsZkPkLLJnMM96qcPWf1MnFbUhyTu8JasRocVvg1wV3FODKhlt3JwY"/>
+</div>
+<div class="flex-1 min-w-0">
+<p class="font-button text-button text-on-surface truncate">Eco Sneakers vs iPad Mini</p>
+<p class="font-body-sm text-body-sm text-secondary flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">sync</span>
+                    Pending validation
+                </p>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+</section>
+<!-- Smart Matching Section -->
+<section class="space-y-sm">
+<div class="flex items-center gap-2 mb-sm">
+<div class="p-1.5 bg-primary-container rounded-lg">
+<span class="material-symbols-outlined text-on-primary-container text-[20px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<h3 class="font-headline-md text-headline-md text-on-surface">Smart Matching</h3>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant px-1">These swappers have what you're looking for and want your items.</p>
+<div class="space-y-sm">
+<!-- Match Card 1 -->
+<div class="bg-surface-container-lowest rounded-xl p-sm border-l-4 border-l-primary shadow-[0px_4px_20px_rgba(27,67,50,0.05)] border-y border-r border-outline-variant/30">
+<div class="flex justify-between items-start mb-sm">
+<div class="flex items-center gap-xs">
+<img class="w-10 h-10 rounded-full object-cover" data-alt="Portrait of Thomas G." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7Gl71oM74y-nHQWQUZLUBVBCXL5SCk656qTxyux2nFnRz9B2pm2ENV4_zasx9ee61m00VYBOFqD710ZjPsXiKxGISRWaawIiDXIyI6RW3neTYNHN4AVtCrT_5e_qOIbIj-Bh_qdrOZYNy_ocp-lxcRA2lz2h5s9KtrTyr4TjNdYMPaJkNW3Bn_awyc6CQlku0DTAiN6WzHg8D7RubZBFZmBPsWNRMqnImvoiDr-URg_YjOs4EsWhwFh3KNyACVdHXq-1d3qxWZ0o"/>
+<div>
+<p class="font-button text-button text-on-surface">Thomas G.</p>
+<p class="font-label-md text-label-md text-on-surface-variant flex items-center">
+<span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings: 'FILL' 1;">star</span>
+                                4.8 • 1.2 km
+                            </p>
+</div>
+</div>
+<div class="bg-primary-container/10 px-2 py-1 rounded text-primary font-label-md text-label-md uppercase tracking-wider">98% Match</div>
+</div>
+<div class="grid grid-cols-2 gap-sm relative">
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-surface-container-lowest p-1 rounded-full shadow-md z-10">
+<span class="material-symbols-outlined text-primary text-[20px]">sync_alt</span>
+</div>
+<div class="space-y-1">
+<p class="font-label-md text-label-md text-on-surface-variant">Has:</p>
+<div class="relative aspect-square rounded-lg overflow-hidden border border-outline-variant/20">
+<img class="w-full h-full object-cover" data-alt="Minimalist wristwatch" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9PwQ_-PEG1lL1PBYyTpdKjQxfDSbqV4ICqczi7Eo8aO5JNDxKKyeA2oJnX-oxMns7NDGd0VOFrEBDYi-R2QH_9Jno1q1Q9r1VOZsUStEbNcuEO_bTHBLBZdCUVZDH-Z4zCBGIML-D0le2CfytmPsAc3-gMlguYN_7M7QeIgYJpaB0KXPL0pXI36sFc6e3yu_zICyPPyupauJjLsxvyT7pvwQa09TEPAXuyShN8Ihon3wjsi3xPFnFsSXvOluFf14c5tzi78_Jf_U"/>
+<div class="absolute bottom-1 right-1 bg-white/90 px-1.5 py-0.5 rounded text-[10px] font-bold text-primary">Minimalist Watch</div>
+</div>
+</div>
+<div class="space-y-1">
+<p class="font-label-md text-label-md text-on-surface-variant">Wants:</p>
+<div class="relative aspect-square rounded-lg overflow-hidden border border-outline-variant/20 opacity-90">
+<img class="w-full h-full object-cover" data-alt="Vintage style film camera" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzcLkCk-H3oCovw2Nq41sSEpoGSdHyM9QKmCoQAc2U9mDh8viuyiUbQMCTwEW437y0OdqvWF06QbHNoyx8j1VU1tVSByljaIJWal2O7FfBhfbLeeQWhFfLvBTNY6pg4HMnwlkyLNE6hlNnTtykXoYdo0fW2HjZUGiLHQ4zMJP_jSkBpUT2TiAt2IbkUzcvyLp_x4C0wwa6de-nclsmOfV2A5XPXASCtqWGhxJs9h8KO-bi4o9q1LT5VfIt1xMjtvRB7vjZDbpc-1M"/>
+<div class="absolute bottom-1 right-1 bg-white/90 px-1.5 py-0.5 rounded text-[10px] font-bold text-primary">Camera</div>
+</div>
+</div>
+</div>
+<button class="w-full mt-sm py-2.5 bg-primary text-on-primary font-button text-button rounded-xl flex items-center justify-center gap-xs active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined">chat</span>
+                    Propose a Swap
+                </button>
+</div>
+<!-- Match Card 2 (Minimal) -->
+<div class="bg-surface-container-lowest rounded-xl p-sm border border-outline-variant/30 shadow-[0px_4px_20px_rgba(27,67,50,0.05)] opacity-80">
+<div class="flex justify-between items-center">
+<div class="flex items-center gap-xs">
+<img class="w-10 h-10 rounded-full object-cover grayscale-[30%]" data-alt="Portrait of Sophie M." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAWwlGH8mVDAqzY5yXaaCQfb7_vjLKHMFk2CkdJH7t7zIzfgbiwR0ZMm2ZY52WANxiO9nK600S4ecjk_sXVbdTbTi_eKsPpZlIptvylED1gfxy9dKeLTwuRkFh98kPZi2VAejOcULnny8NC_I0eg5paR3UMh-JEBUHgoztPC-ijORen7WxXS8a7sNgjQwPKvWiczu4_bDIjyBuC04T2iQ5Xwx6QHlJDYWBJIxnPIID7xsksMF4aY5Ior8ipDI0CzdjKlKDtkpPV93E"/>
+<div>
+<p class="font-button text-button text-on-surface">Sophie M.</p>
+<p class="font-label-md text-label-md text-on-surface-variant">85% Match • 2.5 km</p>
+</div>
+</div>
+<button class="bg-surface-variant text-on-surface-variant p-2 rounded-full">
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe bg-surface-container-lowest h-[84px] rounded-t-xl border-t border-outline-variant shadow-[0px_-4px_20px_rgba(27,67,50,0.05)]">
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="font-label-md text-label-md">Discover</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="swap_horiz">swap_horiz</span>
+<span class="font-label-md text-label-md">Swaps</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary active:scale-90 transition-all duration-150" href="#">
+<div class="bg-primary-container p-2 rounded-full -mt-6 shadow-md border-4 border-surface-container-lowest">
+<span class="material-symbols-outlined text-on-primary-container text-[32px]" data-icon="add_circle" style="font-variation-settings: 'FILL' 1;">add_circle</span>
+</div>
+<span class="font-label-md text-label-md mt-1">Add</span>
+</a>
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-4 py-1 active:scale-90 transition-all duration-150" href="#">
+<span class="material-symbols-outlined" data-icon="person" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</a>
+</nav>
+</body></html>
