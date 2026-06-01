@@ -2,10 +2,12 @@ package com.swapily.app.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.swapily.app.data.model.User
 import com.swapily.app.data.repository.AuthRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import android.net.Uri
 
 class AuthViewModel : ViewModel() {
 
@@ -28,6 +30,9 @@ class AuthViewModel : ViewModel() {
 
     val loading =
         _loading.asStateFlow()
+
+    private val _profileUser = MutableStateFlow<User?>(null)
+    val profileUser = _profileUser.asStateFlow()
 
     private val _registerSuccess =
         MutableStateFlow(false)
@@ -57,7 +62,6 @@ class AuthViewModel : ViewModel() {
                 )
 
             _loading.value = false
-
             result.onSuccess {
 
                 _registerSuccess.value = true
@@ -125,6 +129,64 @@ class AuthViewModel : ViewModel() {
                 _success.value = true
             }.onFailure {
                 _error.value = it.message ?: "Facebook Sign In Error"
+            }
+        }
+    }
+
+    private val _updateSuccess = MutableStateFlow(false)
+    val updateSuccess = _updateSuccess.asStateFlow()
+
+    fun resetUpdateSuccess() {
+        _updateSuccess.value = false
+    }
+
+    fun updateUserProfile(user: User) {
+        viewModelScope.launch {
+            _loading.value = true
+            val result = repository.updateUserProfile(user)
+            _loading.value = false
+            result.onSuccess {
+                _profileUser.value = user
+                _updateSuccess.value = true
+            }.onFailure {
+                _error.value = it.message ?: "Error updating profile"
+            }
+        }
+    }
+
+    fun fetchUserProfile() {
+        val uid = repository.getCurrentUserUid()
+        if (uid != null) {
+            viewModelScope.launch {
+                _loading.value = true
+                val result = repository.getUserProfile(uid)
+                _loading.value = false
+                result.onSuccess {
+                    _profileUser.value = it
+                }.onFailure {
+                    _error.value = it.message ?: "Error fetching profile"
+                }
+            }
+        } else {
+            _error.value = "User not logged in"
+        }
+    }
+
+    fun uploadImage(uri: Uri) {
+        val uid = repository.getCurrentUserUid()
+        if (uid != null) {
+            viewModelScope.launch {
+                _loading.value = true
+                val result = repository.uploadProfileImage(uri, uid)
+                _loading.value = false
+                result.onSuccess { url ->
+                    val updatedUser = _profileUser.value?.copy(image = url)
+                    if (updatedUser != null) {
+                        updateUserProfile(updatedUser)
+                    }
+                }.onFailure {
+                    _error.value = it.message ?: "Error uploading image"
+                }
             }
         }
     }

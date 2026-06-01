@@ -3,21 +3,14 @@ package com.swapily.app.ui.screens.home
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddCircle
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.NotificationsNone
-import androidx.compose.material.icons.filled.PersonOutline
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.SwapHoriz
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -29,20 +22,17 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
+import coil.compose.AsyncImage
 import com.swapily.app.R
+import com.swapily.app.data.model.Product
 import com.swapily.app.ui.Navigation.Screen
-
-data class ProductUi(
-    val title: String,
-    val subtitle: String,
-    val badge: String,
-    val image: Int
-)
+import com.swapily.app.ui.components.AppBottomBar
+import com.swapily.app.viewmodel.ProductViewModel
 
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(navController: NavController, productViewModel: ProductViewModel = viewModel()) {
 
     val bg = Color(0xFFE5F6EA)
     val darkGreen = Color(0xFF0D5C3D)
@@ -50,21 +40,17 @@ fun HomeScreen(navController: NavController) {
     var searchQuery by remember { mutableStateOf("") }
     val location = "London, UK"
 
-    val products = listOf(
-        ProductUi("Analog Watch", "Verified Seller", "LIKE NEW", R.drawable.img3),
-        ProductUi("Bluetooth Head...", "Eco-Contributor", "GOOD CONDITION", R.drawable.img1),
-        ProductUi("Designer Glass ...", "2km away", "NEARLY NEW", R.drawable.img3),
-        ProductUi("Ceramic Vase", "Top Swapper", "USED", R.drawable.img2)
-    )
+    val products by productViewModel.products.collectAsState()
+    val isLoading by productViewModel.loading.collectAsState()
 
     val filteredProducts = products.filter {
         it.title.contains(searchQuery, ignoreCase = true) ||
-        it.subtitle.contains(searchQuery, ignoreCase = true)
+        it.description.contains(searchQuery, ignoreCase = true)
     }
 
     Scaffold(
         containerColor = bg,
-        bottomBar = { BottomNavBar(navController) }
+        bottomBar = { AppBottomBar(navController) }
     ) { padding ->
 
         LazyColumn(
@@ -184,11 +170,19 @@ fun HomeScreen(navController: NavController) {
                 }
             }
 
+            if (isLoading && products.isEmpty()) {
+                item {
+                    Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = darkGreen)
+                    }
+                }
+            }
+
             items(filteredProducts.chunked(2)) { pair ->
                 if (pair.size == 2) {
-                    ProductRow(pair[0], pair[1])
+                    ProductRow(pair[0], pair[1], navController)
                 } else {
-                    ProductCard(pair[0], modifier = Modifier.fillMaxWidth(0.5f))
+                    ProductCard(pair[0], navController, modifier = Modifier.fillMaxWidth(0.5f))
                 }
             }
 
@@ -309,37 +303,41 @@ fun SmartMatchCard() {
         }
     }
 }
+
 @Composable
-fun ProductRow(first: ProductUi, second: ProductUi) {
+fun ProductRow(first: Product, second: Product, navController: NavController) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(18.dp)
     ) {
-        ProductCard(first, Modifier.weight(1f))
-        ProductCard(second, Modifier.weight(1f))
+        ProductCard(first, navController, Modifier.weight(1f))
+        ProductCard(second, navController, Modifier.weight(1f))
     }
 }
 
 @Composable
-fun ProductCard(product: ProductUi, modifier: Modifier = Modifier) {
+fun ProductCard(product: Product, navController: NavController, modifier: Modifier = Modifier) {
 
     val darkGreen = Color(0xFF0D5C3D)
 
     Card(
-        modifier = modifier.height(260.dp),
+        modifier = modifier
+            .height(260.dp)
+            .clickable { navController.navigate(Screen.ProductDetail.createRoute(product.id)) },
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column {
             Box {
-                Image(
-                    painter = painterResource(id = product.image),
+                AsyncImage(
+                    model = product.images.firstOrNull(),
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(150.dp),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(id = R.drawable.img1)
                 )
 
                 Box(
@@ -350,7 +348,7 @@ fun ProductCard(product: ProductUi, modifier: Modifier = Modifier) {
                         .padding(horizontal = 10.dp, vertical = 8.dp)
                 ) {
                     Text(
-                        product.badge,
+                        product.condition.ifEmpty { "NEW" },
                         color = Color.White,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold
@@ -384,75 +382,11 @@ fun ProductCard(product: ProductUi, modifier: Modifier = Modifier) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    product.subtitle,
+                    product.location.ifEmpty { "Marrakech" },
                     color = Color.DarkGray,
                     fontSize = 14.sp
                 )
             }
         }
-    }
-}
-
-@Composable
-fun BottomNavBar(navController: NavController) {
-
-    val darkGreen = Color(0xFF0D5C3D)
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-
-    NavigationBar(
-        containerColor = Color.White,
-        tonalElevation = 8.dp
-    ) {
-        NavigationBarItem(
-            selected = currentRoute == Screen.Home.route,
-            onClick = {
-                if (currentRoute != Screen.Home.route) {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
-                    }
-                }
-            },
-            icon = { Icon(Icons.Default.Search, null) },
-            label = { Text("Discover") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color.White,
-                selectedTextColor = darkGreen,
-                indicatorColor = darkGreen
-            )
-        )
-
-        NavigationBarItem(
-            selected = currentRoute == Screen.Messages.route,
-            onClick = {
-                if (currentRoute != Screen.Messages.route) {
-                    navController.navigate(Screen.Messages.route)
-                }
-            },
-            icon = { Icon(Icons.Default.SwapHoriz, null) },
-            label = { Text("Swaps") }
-        )
-
-        NavigationBarItem(
-            selected = currentRoute == Screen.AddProduct.route,
-            onClick = {
-                if (currentRoute != Screen.AddProduct.route) {
-                    navController.navigate(Screen.AddProduct.route)
-                }
-            },
-            icon = { Icon(Icons.Default.AddCircle, null) },
-            label = { Text("Add") }
-        )
-
-        NavigationBarItem(
-            selected = currentRoute == Screen.Profile.route,
-            onClick = {
-                if (currentRoute != Screen.Profile.route) {
-                    navController.navigate(Screen.Profile.route)
-                }
-            },
-            icon = { Icon(Icons.Default.PersonOutline, null) },
-            label = { Text("Profile") }
-        )
     }
 }

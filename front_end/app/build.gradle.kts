@@ -42,6 +42,7 @@ android {
 
 dependencies {
     implementation("com.google.android.gms:play-services-auth:21.2.0")
+    implementation("com.google.android.gms:play-services-location:21.3.0")
     implementation(
         "com.google.firebase:firebase-auth"
     )
@@ -49,6 +50,13 @@ dependencies {
     implementation(
         "com.google.firebase:firebase-firestore"
     )
+
+    implementation(
+        "com.google.firebase:firebase-storage"
+    )
+
+    implementation("com.cloudinary:cloudinary-android:3.1.2")
+    implementation(libs.androidx.compose.foundation)
 
     implementation(
         "org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3"
