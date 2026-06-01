@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.swapily.app.ui.Navigation.Screen
+import com.swapily.app.ui.components.AppBottomBar
 
 @Composable
 fun MessagesScreen(navController: NavController) {
@@ -20,29 +21,35 @@ fun MessagesScreen(navController: NavController) {
         "Youssef"
     )
 
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
+    Scaffold(
+        bottomBar = { AppBottomBar(navController) }
+    ) { padding ->
 
-        items(chats) { user ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(16.dp)
+        ) {
 
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp)
-                    .clickable {
-                        navController.navigate(Screen.Chat.route)
-                    }
-            ) {
+            items(chats) { user ->
 
-                Column(
-                    modifier = Modifier.padding(16.dp)
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp)
+                        .clickable {
+                            navController.navigate(Screen.Chat.route)
+                        }
                 ) {
 
-                    Text(user)
-                    Text("Last message...")
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+
+                        Text(user)
+                        Text("Last message...")
+                    }
                 }
             }
         }
