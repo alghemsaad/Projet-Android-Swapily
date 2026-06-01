@@ -1,9 +1,12 @@
 package com.swapily.app.data.model
 
 data class User(
-
     val uid: String = "",
     val name: String = "",
     val email: String = "",
-    val image: String = ""
+    val image: String = "",
+    val location: String = "",
+    val bio: String = "",
+    val publicProfile: Boolean = true,
+    val showLocation: Boolean = true
 )

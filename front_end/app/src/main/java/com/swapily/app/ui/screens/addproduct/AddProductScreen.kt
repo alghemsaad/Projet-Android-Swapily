@@ -1,18 +1,19 @@
 package com.swapily.app.ui.screens.addproduct
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Notifications
-import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,24 +22,33 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil.compose.AsyncImage
 import com.swapily.app.R
-
+import com.swapily.app.ui.components.AppBottomBar
+import com.swapily.app.viewmodel.ProductViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun AddProductScreen(navController: NavController) {
+fun AddProductScreen(navController: NavController, productViewModel: ProductViewModel = viewModel()) {
 
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-
     var lookingFor by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("Electronics") }
+    var imageUris by remember { mutableStateOf<List<android.net.Uri>>(emptyList()) }
+
+    val context = LocalContext.current
+    val isLoading by productViewModel.loading.collectAsState()
+    val isSuccess by productViewModel.addProductSuccess.collectAsState()
+    val error by productViewModel.error.collectAsState()
 
     val primaryGreen = Color(0xFF0D5C3D)
     val lightGreen = Color(0xFFE8F8EF)
@@ -46,89 +56,48 @@ fun AddProductScreen(navController: NavController) {
     val sectionTitleColor = Color(0xFF707070)
     val borderColor = Color(0xFFE0E0E0)
 
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetMultipleContents()
+    ) { uris ->
+        imageUris = (imageUris + uris).take(5)
+    }
+
+    LaunchedEffect(isSuccess) {
+        if (isSuccess) {
+            Toast.makeText(context, "Produit ajouté !", Toast.LENGTH_SHORT).show()
+            productViewModel.resetAddProductSuccess()
+            navController.popBackStack()
+        }
+    }
+
+    LaunchedEffect(error) {
+        if (error.isNotEmpty()) {
+            Toast.makeText(context, error, Toast.LENGTH_LONG).show()
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        Text(
-                            text = "SwapIt",
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = primaryGreen
-                        )
+                        Text(text = "SwapIt", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = primaryGreen)
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = { }) {
-                        Icon(Icons.Default.Search, contentDescription = "Search", tint = primaryGreen)
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back", tint = primaryGreen)
                     }
                 },
                 actions = {
                     IconButton(onClick = { }) {
-                        Icon(Icons.Outlined.Notifications, contentDescription = "Notifications", tint = primaryGreen)
+                        Icon(Icons.Outlined.Notifications, "Notifications", tint = primaryGreen)
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFFF1FDF5)
-                )
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFFF1FDF5))
             )
         },
-        bottomBar = {
-            NavigationBar(
-                containerColor = Color.White,
-                tonalElevation = 8.dp
-            ) {
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { },
-                    icon = { Icon(Icons.Default.Explore, contentDescription = "Discover") },
-                    label = { Text("Discover", fontSize = 10.sp) }
-                )
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { },
-                    icon = { Icon(Icons.Default.SwapHoriz, contentDescription = "Swaps") },
-                    label = { Text("Swaps", fontSize = 10.sp) }
-                )
-                
-                // Custom Add button
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Surface(
-                            modifier = Modifier.size(40.dp),
-                            shape = CircleShape,
-                            color = primaryGreen
-                        ) {
-                            Icon(
-                                Icons.Default.Add,
-                                contentDescription = "Add",
-                                tint = Color.White,
-                                modifier = Modifier.padding(8.dp)
-                            )
-                        }
-                        Text(
-                            "Add",
-                            fontSize = 10.sp,
-                            color = primaryGreen,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-
-                NavigationBarItem(
-                    selected = false,
-                    onClick = { },
-                    icon = { Icon(Icons.Outlined.Person, contentDescription = "Profile") },
-                    label = { Text("Profile", fontSize = 10.sp) }
-                )
-            }
-        }
+        bottomBar = { AppBottomBar(navController) }
     ) { paddingValues ->
 
         Column(
@@ -141,44 +110,26 @@ fun AddProductScreen(navController: NavController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            // HEADER
-            Text(
-                text = "Add a product",
-                fontSize = 22.sp,
-                fontWeight = FontWeight.Bold,
-                color = primaryGreen
-            )
-
+            Text(text = "Add a product", fontSize = 22.sp, fontWeight = FontWeight.Bold, color = primaryGreen)
             Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = "Give a second life to your items.",
-                fontSize = 14.sp,
-                color = grayText
-            )
-
+            Text(text = "Give a second life to your items.", fontSize = 14.sp, color = grayText)
             Spacer(modifier = Modifier.height(30.dp))
 
-            // 1. ITEM PHOTOS
             SectionHeader(text = "1. ITEM PHOTOS", color = sectionTitleColor)
-
             Spacer(modifier = Modifier.height(12.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 PhotoActionCard(
                     icon = Icons.Default.AddAPhoto,
                     label = "Take a photo",
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).clickable { /* TODO Camera */ },
                     primaryGreen = primaryGreen,
                     lightGreen = lightGreen
                 )
                 PhotoActionCard(
                     icon = Icons.Default.Image,
                     label = "Gallery",
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f).clickable { galleryLauncher.launch("image/*") },
                     primaryGreen = primaryGreen,
                     lightGreen = lightGreen
                 )
@@ -186,61 +137,30 @@ fun AddProductScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Thumbnail Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Existing Photo (Example)
-                Box(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .clip(RoundedCornerShape(10.dp))
-                ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.img1),
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                    
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(4.dp)
-                            .size(20.dp)
-                            .background(primaryGreen, CircleShape),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            Icons.Default.Close,
-                            contentDescription = "Remove",
-                            tint = Color.White,
-                            modifier = Modifier.size(14.dp)
-                        )
+            Row(modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                imageUris.forEach { uri ->
+                    Box(modifier = Modifier.size(80.dp).clip(RoundedCornerShape(10.dp))) {
+                        AsyncImage(model = uri, contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+                        IconButton(
+                            onClick = { imageUris = imageUris - uri },
+                            modifier = Modifier.align(Alignment.TopEnd).size(24.dp).padding(4.dp).background(Color.Black.copy(0.5f), CircleShape)
+                        ) {
+                            Icon(Icons.Default.Close, null, tint = Color.White, modifier = Modifier.size(12.dp))
+                        }
                     }
                 }
-
-                // Add More placeholder
-                Box(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .border(1.dp, borderColor, RoundedCornerShape(10.dp)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Default.Add,
-                        contentDescription = "Add more",
-                        tint = Color.Gray
-                    )
+                if (imageUris.size < 5) {
+                    Box(
+                        modifier = Modifier.size(80.dp).border(1.dp, borderColor, RoundedCornerShape(10.dp)).clickable { galleryLauncher.launch("image/*") },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(Icons.Default.Add, null, tint = Color.Gray)
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.height(30.dp))
-
-            // 2. PRODUCT DETAILS
             SectionHeader(text = "2. PRODUCT DETAILS", color = sectionTitleColor)
-
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
@@ -249,10 +169,7 @@ fun AddProductScreen(navController: NavController) {
                 placeholder = { Text("Listing title", color = Color.LightGray) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = borderColor,
-                    focusedBorderColor = primaryGreen
-                )
+                colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = borderColor, focusedBorderColor = primaryGreen)
             )
 
             Spacer(modifier = Modifier.height(14.dp))
@@ -260,53 +177,25 @@ fun AddProductScreen(navController: NavController) {
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
-                placeholder = { 
-                    Text(
-                        "Item description (condition, brand, history...)", 
-                        color = Color.LightGray,
-                        fontSize = 14.sp
-                    ) 
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(140.dp),
+                placeholder = { Text("Item description...", color = Color.LightGray, fontSize = 14.sp) },
+                modifier = Modifier.fillMaxWidth().height(140.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = borderColor,
-                    focusedBorderColor = primaryGreen
-                )
+                colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = borderColor, focusedBorderColor = primaryGreen)
             )
 
             Spacer(modifier = Modifier.height(30.dp))
-
-            // 3. CATEGORY
             SectionHeader(text = "3. CATEGORY", color = sectionTitleColor)
-
             Spacer(modifier = Modifier.height(12.dp))
 
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            FlowRow(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 val categories = listOf("Electronics", "Clothing", "Home", "Hobbies", "Other")
                 categories.forEach { category ->
                     val isSelected = category == selectedCategory
                     FilterChip(
                         selected = isSelected,
                         onClick = { selectedCategory = category },
-                        label = { 
-                            Text(
-                                category, 
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                            ) 
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = primaryGreen,
-                            selectedLabelColor = Color.White,
-                            containerColor = Color(0xFFD7F0E0),
-                            labelColor = primaryGreen
-                        ),
+                        label = { Text(category, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium) },
+                        colors = FilterChipDefaults.filterChipColors(selectedContainerColor = primaryGreen, selectedLabelColor = Color.White, containerColor = Color(0xFFD7F0E0), labelColor = primaryGreen),
                         border = null,
                         shape = RoundedCornerShape(20.dp)
                     )
@@ -314,103 +203,50 @@ fun AddProductScreen(navController: NavController) {
             }
 
             Spacer(modifier = Modifier.height(30.dp))
-
-            // 4. WHAT ARE YOU LOOKING FOR?
             SectionHeader(text = "4. WHAT ARE YOU LOOKING FOR?", color = sectionTitleColor)
-
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
                 value = lookingFor,
                 onValueChange = { lookingFor = it },
-                placeholder = { Text("Ex: A bike, a console, books...", color = Color.LightGray) },
-                leadingIcon = {
-                    Icon(Icons.Default.SwapHoriz, contentDescription = null, tint = primaryGreen)
-                },
+                placeholder = { Text("Ex: A bike, books...", color = Color.LightGray) },
+                leadingIcon = { Icon(Icons.Default.SwapHoriz, null, tint = primaryGreen) },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    unfocusedBorderColor = borderColor,
-                    focusedBorderColor = primaryGreen
-                )
+                colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = borderColor, focusedBorderColor = primaryGreen)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
-
-            // INFO BOX
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFFEBF2EF), RoundedCornerShape(12.dp))
-                    .padding(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    Icons.Default.Info,
-                    contentDescription = null,
-                    tint = Color.Gray,
-                    modifier = Modifier.size(18.dp)
-                )
+            Row(modifier = Modifier.fillMaxWidth().background(Color(0xFFEBF2EF), RoundedCornerShape(12.dp)).padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Info, null, tint = Color.Gray, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(10.dp))
-                Text(
-                    text = "Be precise to increase your chances of getting a relevant swap.",
-                    fontSize = 12.sp,
-                    color = Color.Gray,
-                    lineHeight = 16.sp
-                )
+                Text(text = "Be precise to increase your chances.", fontSize = 12.sp, color = Color.Gray)
             }
 
             Spacer(modifier = Modifier.height(40.dp))
-
-            // FOOTER VERIFIED
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    Icons.Default.Verified,
-                    contentDescription = null,
-                    tint = primaryGreen,
-                    modifier = Modifier.size(16.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "Verified by the SwapIt community",
-                    fontSize = 12.sp,
-                    color = grayText
-                )
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // PUBLISH BUTTON
             Button(
-                onClick = { },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
+                onClick = { 
+                    if (title.isNotEmpty() && imageUris.isNotEmpty()) {
+                        productViewModel.addProduct(title, description, selectedCategory, lookingFor, imageUris)
+                    } else {
+                        Toast.makeText(context, "Title and at least one image required", Toast.LENGTH_SHORT).show()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                enabled = !isLoading,
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = primaryGreen
-                )
+                colors = ButtonDefaults.buttonColors(containerColor = primaryGreen)
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "Publish my listing",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Icon(
-                        Icons.AutoMirrored.Filled.Send,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
+                if (isLoading) {
+                    CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                } else {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("Publish my listing", fontWeight = FontWeight.Bold)
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Icon(Icons.AutoMirrored.Filled.Send, null, modifier = Modifier.size(20.dp))
+                    }
                 }
             }
-
             Spacer(modifier = Modifier.height(40.dp))
         }
     }
@@ -418,47 +254,16 @@ fun AddProductScreen(navController: NavController) {
 
 @Composable
 fun SectionHeader(text: String, color: Color) {
-    Text(
-        text = text,
-        modifier = Modifier.fillMaxWidth(),
-        textAlign = TextAlign.Start,
-        fontSize = 12.sp,
-        fontWeight = FontWeight.Bold,
-        color = color
-    )
+    Text(text = text, modifier = Modifier.fillMaxWidth(), textAlign = TextAlign.Start, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = color)
 }
 
 @Composable
-fun PhotoActionCard(
-    icon: ImageVector,
-    label: String,
-    modifier: Modifier = Modifier,
-    primaryGreen: Color,
-    lightGreen: Color
-) {
-    Box(
-        modifier = modifier
-            .height(125.dp)
-            .background(lightGreen, RoundedCornerShape(12.dp))
-            .border(1.dp, primaryGreen.copy(alpha = 0.2f), RoundedCornerShape(12.dp)),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = primaryGreen,
-                modifier = Modifier.size(32.dp)
-            )
+fun PhotoActionCard(icon: ImageVector, label: String, modifier: Modifier = Modifier, primaryGreen: Color, lightGreen: Color) {
+    Box(modifier = modifier.height(125.dp).background(lightGreen, RoundedCornerShape(12.dp)).border(1.dp, primaryGreen.copy(alpha = 0.2f), RoundedCornerShape(12.dp)), contentAlignment = Alignment.Center) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Icon(imageVector = icon, null, tint = primaryGreen, modifier = Modifier.size(32.dp))
             Spacer(modifier = Modifier.height(10.dp))
-            Text(
-                text = label,
-                color = primaryGreen,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold
-            )
+            Text(text = label, color = primaryGreen, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
         }
     }
 }

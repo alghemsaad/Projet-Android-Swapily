@@ -4,8 +4,14 @@ import com.google.firebase.auth.FacebookAuthProvider
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.firestore.FirebaseFirestore
+import com.cloudinary.android.MediaManager
+import com.cloudinary.android.callback.ErrorInfo
+import com.cloudinary.android.callback.UploadCallback
 import com.swapily.app.data.model.User
 import kotlinx.coroutines.tasks.await
+import android.net.Uri
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
 
 class AuthRepository {
 
@@ -122,5 +128,59 @@ class AuthRepository {
 
             Result.failure(e)
         }
+    }
+
+    suspend fun getUserProfile(uid: String): Result<User?> {
+        return try {
+            val userDoc = firestore.collection("users").document(uid).get().await()
+            val user = userDoc.toObject(User::class.java)
+            Result.success(user)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun updateUserProfile(user: User): Result<Unit> {
+        return try {
+            firestore.collection("users").document(user.uid).set(user).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun uploadProfileImage(uri: Uri, uid: String): Result<String> {
+        return suspendCancellableCoroutine { continuation ->
+            try {
+                MediaManager.get().upload(uri)
+                    .option("folder", "profile_images")
+                    // On ne force pas le public_id pour que Cloudinary génère une URL unique à chaque fois
+                    .option("upload_preset", "swapily_preset")
+                    .option("unsigned", true)
+                    .callback(object : UploadCallback {
+                        override fun onStart(requestId: String) {}
+                        override fun onProgress(requestId: String, bytes: Long, totalBytes: Long) {}
+                        override fun onSuccess(requestId: String, resultData: Map<*, *>) {
+                            val url = resultData["secure_url"] as? String
+                            if (url != null) {
+                                if (continuation.isActive) continuation.resume(Result.success(url))
+                            } else {
+                                if (continuation.isActive) continuation.resume(Result.failure(Exception("Cloudinary URL missing")))
+                            }
+                        }
+                        override fun onError(requestId: String, error: ErrorInfo) {
+                            val errorMsg = error.description ?: "Unknown Cloudinary Error"
+                            if (continuation.isActive) continuation.resume(Result.failure(Exception("Cloudinary: $errorMsg")))
+                        }
+                        override fun onReschedule(requestId: String, error: ErrorInfo) {}
+                    }).dispatch()
+            } catch (e: Exception) {
+                if (continuation.isActive) continuation.resume(Result.failure(e))
+            }
+        }
+    }
+
+    fun getCurrentUserUid(): String? {
+        return auth.currentUser?.uid
     }
 }

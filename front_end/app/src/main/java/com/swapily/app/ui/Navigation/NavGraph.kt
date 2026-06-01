@@ -8,8 +8,10 @@ import com.swapily.app.ui.screens.auth.LoginScreen
 import com.swapily.app.ui.screens.home.HomeScreen
 import com.swapily.app.ui.screens.messages.MessagesScreen
 import com.swapily.app.ui.screens.profile.ProfileScreen
+import com.swapily.app.ui.screens.profile.EditProfileScreen
 import com.swapily.app.ui.screens.addproduct.AddProductScreen
 import com.swapily.app.ui.screens.chat.ChatScreen
+import com.swapily.app.ui.screens.productdetail.ProductDetailScreen
 
 @Composable
 fun AppNavigation() {
@@ -43,6 +45,15 @@ fun AppNavigation() {
 
         composable(Screen.Chat.route) {
             ChatScreen(navController)
+        }
+
+        composable(Screen.EditProfile.route) {
+            EditProfileScreen(navController)
+        }
+
+        composable(Screen.ProductDetail.route) { backStackEntry ->
+            val productId = backStackEntry.arguments?.getString("productId") ?: ""
+            ProductDetailScreen(navController, productId)
         }
     }
 }
