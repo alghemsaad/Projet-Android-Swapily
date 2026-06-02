@@ -43,8 +43,10 @@ fun AppNavigation() {
             AddProductScreen(navController)
         }
 
-        composable(Screen.Chat.route) {
-            ChatScreen(navController)
+        composable(Screen.Chat.route) { backStackEntry ->
+            // On récupère le nom depuis l'URL, ou on met "Utilisateur" par défaut
+            val userName = backStackEntry.arguments?.getString("userName") ?: "Utilisateur"
+            ChatScreen(navController, userName) // On envoie le nom à l'écran
         }
 
         composable(Screen.EditProfile.route) {
