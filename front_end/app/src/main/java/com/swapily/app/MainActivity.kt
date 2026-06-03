@@ -42,10 +42,9 @@ fun SwapilyApp() {
 
             Button(onClick = {}) {
                 Text("Login")
-=======
+
             SwapilyTheme {
                 AppNavigation()
->>>>>>> 554d3f8 (add data login and ui app)
             }
         }
     }
