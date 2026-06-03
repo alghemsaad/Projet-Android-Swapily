@@ -1,11 +1,19 @@
 package com.swapily.app.ui.screens.home
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.Context
+import android.content.pm.PackageManager
+import android.location.Geocoder
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,39 +25,68 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.google.android.gms.location.LocationServices
 import com.swapily.app.R
 import com.swapily.app.data.model.Product
 import com.swapily.app.ui.Navigation.Screen
 import com.swapily.app.ui.components.AppBottomBar
+import com.swapily.app.ui.theme.*
 import com.swapily.app.viewmodel.ProductViewModel
+import java.util.Locale
 
+@SuppressLint("MissingPermission")
 @Composable
 fun HomeScreen(navController: NavController, productViewModel: ProductViewModel = viewModel()) {
 
-    val bg = Color(0xFFE5F6EA)
-    val darkGreen = Color(0xFF0D5C3D)
+    val context = LocalContext.current
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
     var searchQuery by remember { mutableStateOf("") }
-    val location = "London, UK"
+    var selectedCategory by remember { mutableStateOf("All") }
+    var selectedLocation by remember { mutableStateOf("All") }
+    var showLocationMenu by remember { mutableStateOf(false) }
+
+    val categories = listOf("All", "Electronics", "Clothing", "Home", "Sports", "Books")
+    val locations = listOf("All", "Marrakech", "Casablanca", "Rabat", "London, UK")
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val granted = permissions.values.all { it }
+        if (granted) {
+            detectLocation(context, fusedLocationClient) { city ->
+                selectedLocation = city
+            }
+        } else {
+            Toast.makeText(context, "Permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     val products by productViewModel.products.collectAsState()
     val isLoading by productViewModel.loading.collectAsState()
 
     val filteredProducts = products.filter {
-        it.title.contains(searchQuery, ignoreCase = true) ||
-        it.description.contains(searchQuery, ignoreCase = true)
+        val matchesSearch = it.title.contains(searchQuery, ignoreCase = true) ||
+                it.description.contains(searchQuery, ignoreCase = true)
+        val matchesCategory = selectedCategory == "All" || it.category.equals(selectedCategory, ignoreCase = true)
+        val matchesLocation = selectedLocation == "All" || 
+                it.location.contains(selectedLocation, ignoreCase = true) || 
+                selectedLocation.contains(it.location, ignoreCase = true)
+        matchesSearch && matchesCategory && matchesLocation
     }
 
     Scaffold(
-        containerColor = bg,
+        containerColor = Background,
         bottomBar = { AppBottomBar(navController) }
     ) { padding ->
 
@@ -57,47 +94,113 @@ fun HomeScreen(navController: NavController, productViewModel: ProductViewModel 
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 26.dp),
+                .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(22.dp)
         ) {
 
             item {
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .statusBarsPadding(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Default.Search, null, tint = darkGreen)
+                    IconButton(onClick = { /* TODO */ }) {
+                        Icon(Icons.Default.Search, null, tint = GreenPrimary)
+                    }
 
-                    Image(
-                        painter = painterResource(id = R.drawable.logo),
-                        contentDescription = null,
-                        modifier = Modifier.size(58.dp),
-                        contentScale = ContentScale.Fit
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            painter = painterResource(id = R.drawable.logo),
+                            contentDescription = null,
+                            modifier = Modifier.size(32.dp),
+                            contentScale = ContentScale.Fit
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Swapily",
+                            fontSize = 22.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = GreenPrimary
+                        )
+                    }
 
-                    Icon(Icons.Default.NotificationsNone, null, tint = darkGreen)
+                    IconButton(onClick = { /* TODO */ }) {
+                        Icon(Icons.Default.NotificationsNone, null, tint = GreenPrimary)
+                    }
                 }
             }
 
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(Icons.Default.LocationOn, null, tint = darkGreen)
-                    Spacer(modifier = Modifier.width(10.dp))
-                    
-                    Text(
-                        text = location,
-                        fontSize = 16.sp,
-                        color = Color.Black,
-                        modifier = Modifier.weight(1f)
-                    )
-                    
-                    Icon(Icons.Default.KeyboardArrowDown, null)
+                Box {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showLocationMenu = true },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.LocationOn, null, tint = GreenPrimary)
+                        Spacer(modifier = Modifier.width(10.dp))
+
+                        Text(
+                            text = if (selectedLocation == "All") "Select Location" else selectedLocation,
+                            fontSize = 16.sp,
+                            color = TextDark,
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        Icon(Icons.Default.KeyboardArrowDown, null, tint = GrayText)
+                    }
+
+                    DropdownMenu(
+                        expanded = showLocationMenu,
+                        onDismissRequest = { showLocationMenu = false },
+                        modifier = Modifier.background(White)
+                    ) {
+                        DropdownMenuItem(
+                            text = { 
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.MyLocation, null, tint = GreenPrimary, modifier = Modifier.size(18.dp))
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Use Current Location")
+                                }
+                            },
+                            onClick = {
+                                showLocationMenu = false
+                                val hasFine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                                val hasCoarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                                
+                                if (hasFine || hasCoarse) {
+                                    Toast.makeText(context, "Detecting...", Toast.LENGTH_SHORT).show()
+                                    detectLocation(context, fusedLocationClient) { city ->
+                                        selectedLocation = city
+                                    }
+                                } else {
+                                    permissionLauncher.launch(
+                                        arrayOf(
+                                            Manifest.permission.ACCESS_FINE_LOCATION,
+                                            Manifest.permission.ACCESS_COARSE_LOCATION
+                                        )
+                                    )
+                                }
+                            }
+                        )
+
+                        HorizontalDivider(color = Background)
+
+                        locations.forEach { location ->
+                            DropdownMenuItem(
+                                text = { Text(location) },
+                                onClick = {
+                                    selectedLocation = location
+                                    showLocationMenu = false
+                                }
+                            )
+                        }
+                    }
                 }
             }
 
@@ -138,11 +241,17 @@ fun HomeScreen(navController: NavController, productViewModel: ProductViewModel 
             }
 
             item {
-                Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                    CategoryChip("All", true)
-                    CategoryChip("Electronics", false)
-                    CategoryChip("Clothing", false)
-                    CategoryChip("Home", false)
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(end = 20.dp)
+                ) {
+                    items(categories) { category ->
+                        CategoryChip(
+                            text = category,
+                            selected = category == selectedCategory,
+                            onClick = { selectedCategory = category }
+                        )
+                    }
                 }
             }
 
@@ -159,12 +268,13 @@ fun HomeScreen(navController: NavController, productViewModel: ProductViewModel 
                     Text(
                         "Local New Arrivals",
                         fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = TextDark
                     )
 
                     Text(
                         "View all",
-                        color = darkGreen,
+                        color = GreenPrimary,
                         fontWeight = FontWeight.SemiBold
                     )
                 }
@@ -173,7 +283,7 @@ fun HomeScreen(navController: NavController, productViewModel: ProductViewModel 
             if (isLoading && products.isEmpty()) {
                 item {
                     Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = darkGreen)
+                        CircularProgressIndicator(color = GreenPrimary)
                     }
                 }
             }
@@ -193,45 +303,68 @@ fun HomeScreen(navController: NavController, productViewModel: ProductViewModel 
     }
 }
 
+@SuppressLint("MissingPermission")
+private fun detectLocation(
+    context: Context,
+    fusedLocationClient: com.google.android.gms.location.FusedLocationProviderClient,
+    onLocationDetected: (String) -> Unit
+) {
+    fusedLocationClient.getCurrentLocation(
+        com.google.android.gms.location.Priority.PRIORITY_HIGH_ACCURACY,
+        null
+    ).addOnSuccessListener { loc ->
+        if (loc != null) {
+            try {
+                val geocoder = Geocoder(context, Locale.getDefault())
+                val addresses = geocoder.getFromLocation(loc.latitude, loc.longitude, 1)
+                if (!addresses.isNullOrEmpty()) {
+                    val address = addresses[0]
+                    val city = address.locality ?: address.subAdminArea ?: "Unknown City"
+                    onLocationDetected(city)
+                } else {
+                    onLocationDetected("Location not found")
+                }
+            } catch (e: Exception) {
+                onLocationDetected("Geocoder Error")
+            }
+        } else {
+            onLocationDetected("GPS Disabled")
+        }
+    }.addOnFailureListener {
+        onLocationDetected("Detection Failed")
+    }
+}
+
 @Composable
-fun CategoryChip(text: String, selected: Boolean) {
-
-    val darkGreen = Color(0xFF0D5C3D)
-
+fun CategoryChip(text: String, selected: Boolean, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .background(
-                if (selected) darkGreen else Color(0xFFEFF3F0),
+                if (selected) GreenPrimary else GreenLight.copy(alpha = 0.5f),
                 RoundedCornerShape(24.dp)
             )
-            .border(
-                1.dp,
-                if (selected) darkGreen else Color(0xFFB8C5BD),
-                RoundedCornerShape(24.dp)
-            )
-            .padding(horizontal = 18.dp, vertical = 11.dp),
+            .clickable { onClick() }
+            .padding(horizontal = 20.dp, vertical = 10.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
             text = text,
-            color = if (selected) Color.White else Color.Black,
-            fontWeight = FontWeight.SemiBold
+            color = if (selected) White else GreenPrimary,
+            fontWeight = FontWeight.SemiBold,
+            fontSize = 14.sp
         )
     }
 }
 
 @Composable
 fun SmartMatchCard() {
-
-    val darkGreen = Color(0xFF0D5C3D)
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(315.dp),
         shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = darkGreen
+            containerColor = GreenPrimary
         ),
         elevation = CardDefaults.cardElevation(8.dp)
     ) {
@@ -247,7 +380,7 @@ fun SmartMatchCard() {
 
                 Text(
                     text = "SMART MATCH",
-                    color = Color.White.copy(alpha = 0.8f),
+                    color = White.copy(alpha = 0.8f),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.5.sp
@@ -257,7 +390,7 @@ fun SmartMatchCard() {
 
                 Text(
                     text = "Swap your camera\nfor a drone?",
-                    color = Color.White,
+                    color = White,
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     lineHeight = 34.sp
@@ -267,7 +400,7 @@ fun SmartMatchCard() {
 
                 Text(
                     text = "Based on your wishlist and\navailable items.",
-                    color = Color.White,
+                    color = White,
                     fontSize = 17.sp,
                     lineHeight = 23.sp
                 )
@@ -278,13 +411,13 @@ fun SmartMatchCard() {
                     onClick = {},
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.White
+                        containerColor = White
                     ),
                     modifier = Modifier.height(52.dp)
                 ) {
                     Text(
                         text = "View Swap",
-                        color = darkGreen,
+                        color = GreenPrimary,
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -296,7 +429,7 @@ fun SmartMatchCard() {
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .offset(x = 10.dp, y = 8.dp),
-                color = Color.White.copy(alpha = 0.28f),
+                color = White.copy(alpha = 0.28f),
                 fontSize = 120.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -317,15 +450,12 @@ fun ProductRow(first: Product, second: Product, navController: NavController) {
 
 @Composable
 fun ProductCard(product: Product, navController: NavController, modifier: Modifier = Modifier) {
-
-    val darkGreen = Color(0xFF0D5C3D)
-
     Card(
         modifier = modifier
             .height(260.dp)
             .clickable { navController.navigate(Screen.ProductDetail.createRoute(product.id)) },
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
+        colors = CardDefaults.cardColors(containerColor = White),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column {
@@ -344,12 +474,12 @@ fun ProductCard(product: Product, navController: NavController, modifier: Modifi
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(10.dp)
-                        .background(Color(0xFF294B37), RoundedCornerShape(8.dp))
+                        .background(GreenPrimary, RoundedCornerShape(8.dp))
                         .padding(horizontal = 10.dp, vertical = 8.dp)
                 ) {
                     Text(
                         product.condition.ifEmpty { "NEW" },
-                        color = Color.White,
+                        color = White,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -360,13 +490,13 @@ fun ProductCard(product: Product, navController: NavController, modifier: Modifi
                         .align(Alignment.BottomEnd)
                         .padding(10.dp)
                         .size(52.dp)
-                        .background(Color(0xFFDDF0E3), CircleShape),
+                        .background(GreenLight, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         Icons.Default.FavoriteBorder,
                         null,
-                        tint = darkGreen
+                        tint = GreenPrimary
                     )
                 }
             }
@@ -376,14 +506,15 @@ fun ProductCard(product: Product, navController: NavController, modifier: Modifi
                     product.title,
                     fontSize = 20.sp,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
+                    color = TextDark
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
                     product.location.ifEmpty { "Marrakech" },
-                    color = Color.DarkGray,
+                    color = GrayText,
                     fontSize = 14.sp
                 )
             }

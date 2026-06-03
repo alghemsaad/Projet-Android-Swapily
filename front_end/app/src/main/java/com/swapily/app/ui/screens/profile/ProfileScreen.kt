@@ -304,49 +304,93 @@ fun SwapTabs() {
 fun MySwapCard() {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(Color.White),
-        elevation = CardDefaults.cardElevation(3.dp)
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(White),
+        elevation = CardDefaults.cardElevation(2.dp),
+        border = BorderStroke(1.dp, GrayText.copy(alpha = 0.2f))
     ) {
         Row(
-            modifier = Modifier.padding(22.dp),
+            modifier = Modifier.padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.img1),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(62.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
-            )
+            // Stack of images for the swap
+            Box(modifier = Modifier.width(90.dp)) {
+                // Item 1
+                Image(
+                    painter = painterResource(id = R.drawable.img1),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .border(2.dp, White, RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
+                )
 
-            Box(
-                modifier = Modifier
-                    .size(62.dp)
-                    .background(Color(0xFFC7F1D7)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(Icons.Default.SwapHoriz, null, tint = Color(0xFF0D5C3D))
+                // Swap Icon in the middle
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .align(Alignment.Center)
+                        .offset(x = 0.dp)
+                        .background(GreenLight, CircleShape)
+                        .border(2.dp, White, CircleShape)
+                        .zIndex(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.SwapHoriz,
+                        null,
+                        tint = GreenPrimary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+
+                // Item 2
+                Image(
+                    painter = painterResource(id = R.drawable.img2),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(56.dp)
+                        .align(Alignment.CenterEnd)
+                        .clip(RoundedCornerShape(8.dp))
+                        .border(2.dp, White, RoundedCornerShape(8.dp)),
+                    contentScale = ContentScale.Crop
+                )
             }
 
-            Image(
-                painter = painterResource(id = R.drawable.img2),
-                contentDescription = null,
-                modifier = Modifier
-                    .size(62.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                contentScale = ContentScale.Crop
-            )
-
-            Spacer(modifier = Modifier.width(22.dp))
+            Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text("Eco Sneak...", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Text("↻ Pending\nvalidation", color = Color(0xFF0D5C3D), fontSize = 16.sp)
+                Text(
+                    "Eco Sneakers vs iPad Mini",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextDark,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.Sync,
+                        null,
+                        tint = GreenPrimary,
+                        modifier = Modifier.size(14.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        "Pending validation",
+                        color = GreenPrimary,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
 
-            Icon(Icons.Default.KeyboardArrowRight, null, tint = Color.Gray)
+            Icon(
+                Icons.Default.KeyboardArrowRight,
+                null,
+                tint = GrayText.copy(alpha = 0.5f)
+            )
         }
     }
 }
