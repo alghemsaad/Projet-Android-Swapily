@@ -10,21 +10,30 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.swapily.app.ui.Navigation.Screen
+import com.swapily.app.ui.theme.GrayText
+import com.swapily.app.ui.theme.GreenLight
+import com.swapily.app.ui.theme.GreenPrimary
 
 @Composable
 fun AppBottomBar(navController: NavController) {
 
-    val darkGreen = Color(0xFF0D5C3D)
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
+    val itemColors = NavigationBarItemDefaults.colors(
+        selectedIconColor = GreenPrimary,
+        selectedTextColor = GreenPrimary,
+        unselectedIconColor = GrayText,
+        unselectedTextColor = GrayText,
+        indicatorColor = GreenLight
+    )
+
     NavigationBar(
-        containerColor = Color.White,
+        containerColor = com.swapily.app.ui.theme.White,
         tonalElevation = 8.dp
     ) {
         NavigationBarItem(
@@ -38,22 +47,19 @@ fun AppBottomBar(navController: NavController) {
             },
             icon = { Icon(Icons.Default.Search, null) },
             label = { Text("Discover") },
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = Color.White,
-                selectedTextColor = darkGreen,
-                indicatorColor = darkGreen
-            )
+            colors = itemColors
         )
 
         NavigationBarItem(
-            selected = currentRoute == Screen.Messages.route,
+            selected = currentRoute == Screen.Swaps.route,
             onClick = {
-                if (currentRoute != Screen.Messages.route) {
-                    navController.navigate(Screen.Messages.route)
+                if (currentRoute != Screen.Swaps.route) {
+                    navController.navigate(Screen.Swaps.route)
                 }
             },
             icon = { Icon(Icons.Default.SwapHoriz, null) },
-            label = { Text("Swaps") }
+            label = { Text("Swaps") },
+            colors = itemColors
         )
 
         NavigationBarItem(
@@ -64,7 +70,8 @@ fun AppBottomBar(navController: NavController) {
                 }
             },
             icon = { Icon(Icons.Default.AddCircle, null, modifier = Modifier.size(32.dp)) },
-            label = { Text("Add") }
+            label = { Text("Add") },
+            colors = itemColors
         )
 
         NavigationBarItem(
@@ -75,7 +82,8 @@ fun AppBottomBar(navController: NavController) {
                 }
             },
             icon = { Icon(Icons.Default.PersonOutline, null) },
-            label = { Text("Profile") }
+            label = { Text("Profile") },
+            colors = itemColors
         )
     }
 }

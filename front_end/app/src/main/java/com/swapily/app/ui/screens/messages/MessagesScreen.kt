@@ -21,6 +21,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.swapily.app.ui.components.AppBottomBar
 import com.swapily.app.ui.Navigation.Screen
 import com.swapily.app.ui.theme.*
 
@@ -45,7 +46,7 @@ fun MessagesScreen(navController: NavController) {
 
     Scaffold(
         topBar = { TopBar() },
-        bottomBar = { BottomNavBar() },
+        bottomBar = { AppBottomBar(navController) },
         containerColor = Background
     ) { paddingValues ->
 
@@ -128,7 +129,7 @@ fun HeaderSection() {
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
-            text = "Messages",
+            text = "Swaps",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
             color = GreenPrimary
@@ -262,54 +263,3 @@ fun ChatListItem(chat: ChatPreview, onClick: () -> Unit) {
     }
 }
 
-@Composable
-fun BottomNavBar() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(84.dp)
-            .background(White)
-            .padding(bottom = 16.dp), // Padding pour la zone safe du bas de l'écran
-        horizontalArrangement = Arrangement.SpaceAround,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        BottomNavItem(icon = Icons.Outlined.Search, label = "Discover", isSelected = false)
-        BottomNavItem(icon = Icons.Default.Refresh, label = "Swaps", isSelected = true) // Actif sur cette page
-        BottomNavItem(icon = Icons.Default.AddCircle, label = "Add", isSelected = false, isAccent = true)
-        BottomNavItem(icon = Icons.Outlined.Person, label = "Profile", isSelected = false)
-    }
-}
-
-@Composable
-fun BottomNavItem(icon: ImageVector, label: String, isSelected: Boolean, isAccent: Boolean = false) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.clickable { /* TODO: Navigation */ }
-    ) {
-        if (isSelected && !isAccent) {
-            Box(
-                modifier = Modifier
-                    .background(GreenLight, shape = RoundedCornerShape(16.dp))
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
-            ) {
-                Icon(icon, contentDescription = label, tint = GreenPrimary)
-            }
-        } else {
-            Icon(
-                icon,
-                contentDescription = label,
-                tint = if (isAccent) GreenPrimary else GrayText,
-                modifier = if (isAccent) Modifier.size(32.dp) else Modifier.size(24.dp)
-            )
-        }
-
-        Spacer(modifier = Modifier.height(4.dp))
-
-        Text(
-            text = label,
-            fontSize = 12.sp,
-            color = if (isSelected || isAccent) GreenPrimary else GrayText,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-        )
-    }
-}

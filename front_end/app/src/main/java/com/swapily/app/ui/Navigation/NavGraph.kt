@@ -31,7 +31,7 @@ fun AppNavigation() {
             HomeScreen(navController)
         }
 
-        composable(Screen.Messages.route) {
+        composable(Screen.Swaps.route) {
             MessagesScreen(navController)
         }
 

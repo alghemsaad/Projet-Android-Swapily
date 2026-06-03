@@ -81,7 +81,7 @@ fun AddProductScreen(navController: NavController, productViewModel: ProductView
             TopAppBar(
                 title = {
                     Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                        Text(text = "SwapIt", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = primaryGreen)
+                        Text(text = "Swapily", fontSize = 24.sp, fontWeight = FontWeight.Bold, color = primaryGreen)
                     }
                 },
                 navigationIcon = {
