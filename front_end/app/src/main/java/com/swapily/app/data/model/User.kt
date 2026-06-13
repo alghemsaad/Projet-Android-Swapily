@@ -8,5 +8,9 @@ data class User(
     val location: String = "",
     val bio: String = "",
     val publicProfile: Boolean = true,
-    val showLocation: Boolean = true
+    val showLocation: Boolean = true,
+    val swapsCount: Int = 0,
+    val reviewsCount: Int = 0,
+    val rating: Double = 0.0,
+    val favorites: List<String> = emptyList()
 )

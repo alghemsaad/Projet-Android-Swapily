@@ -1,7 +1,13 @@
 package com.swapily.app.ui.screens.addproduct
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.Context
+import android.location.Geocoder
+import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -28,24 +34,91 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.google.android.gms.location.LocationServices
 import com.swapily.app.R
 import com.swapily.app.ui.components.AppBottomBar
 import com.swapily.app.viewmodel.ProductViewModel
+import java.io.File
+import java.util.Locale
 
+@SuppressLint("MissingPermission")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun AddProductScreen(navController: NavController, productViewModel: ProductViewModel = viewModel()) {
+fun AddProductScreen(navController: NavController, productViewModel: ProductViewModel) {
 
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var lookingFor by remember { mutableStateOf("") }
+    var location by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("Electronics") }
-    var imageUris by remember { mutableStateOf<List<android.net.Uri>>(emptyList()) }
+    var imageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
 
     val context = LocalContext.current
+    
+    // --- Camera & Gallery Logic ---
+    var tempCameraUri by remember { mutableStateOf<Uri?>(null) }
+    
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && tempCameraUri != null) {
+            imageUris = (imageUris + tempCameraUri!!).take(5)
+        }
+    }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickMultipleVisualMedia(5)
+    ) { uris ->
+        if (uris.isNotEmpty()) {
+            imageUris = (imageUris + uris).take(5)
+        }
+    }
+
+    fun createTempUri(context: Context): Uri {
+        val tempFile = File.createTempFile("camera_photo_", ".jpg", context.cacheDir).apply {
+            createNewFile()
+            deleteOnExit()
+        }
+        return FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            tempFile
+        )
+    }
+    // ------------------------------
+
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+    
+    val locationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+            permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+        ) {
+            // Permission granted, fetch location
+            fusedLocationClient.lastLocation.addOnSuccessListener { loc ->
+                loc?.let {
+                    val geocoder = Geocoder(context, Locale.getDefault())
+                    try {
+                        val addresses = geocoder.getFromLocation(it.latitude, it.longitude, 1)
+                        if (!addresses.isNullOrEmpty()) {
+                            val address = addresses[0]
+                            location = "${address.locality}, ${address.countryName}"
+                        }
+                    } catch (e: Exception) {
+                        location = "Lat: ${it.latitude}, Lon: ${it.longitude}"
+                    }
+                }
+            }
+        } else {
+            Toast.makeText(context, "Location permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     val isLoading by productViewModel.loading.collectAsState()
     val isSuccess by productViewModel.addProductSuccess.collectAsState()
     val error by productViewModel.error.collectAsState()
@@ -55,12 +128,6 @@ fun AddProductScreen(navController: NavController, productViewModel: ProductView
     val grayText = Color(0xFF5B5B5B)
     val sectionTitleColor = Color(0xFF707070)
     val borderColor = Color(0xFFE0E0E0)
-
-    val galleryLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetMultipleContents()
-    ) { uris ->
-        imageUris = (imageUris + uris).take(5)
-    }
 
     LaunchedEffect(isSuccess) {
         if (isSuccess) {
@@ -122,14 +189,20 @@ fun AddProductScreen(navController: NavController, productViewModel: ProductView
                 PhotoActionCard(
                     icon = Icons.Default.AddAPhoto,
                     label = "Take a photo",
-                    modifier = Modifier.weight(1f).clickable { /* TODO Camera */ },
+                    modifier = Modifier.weight(1f).clickable {
+                        val uri = createTempUri(context)
+                        tempCameraUri = uri
+                        cameraLauncher.launch(uri)
+                    },
                     primaryGreen = primaryGreen,
                     lightGreen = lightGreen
                 )
                 PhotoActionCard(
                     icon = Icons.Default.Image,
                     label = "Gallery",
-                    modifier = Modifier.weight(1f).clickable { galleryLauncher.launch("image/*") },
+                    modifier = Modifier.weight(1f).clickable {
+                        galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                    },
                     primaryGreen = primaryGreen,
                     lightGreen = lightGreen
                 )
@@ -151,7 +224,9 @@ fun AddProductScreen(navController: NavController, productViewModel: ProductView
                 }
                 if (imageUris.size < 5) {
                     Box(
-                        modifier = Modifier.size(80.dp).border(1.dp, borderColor, RoundedCornerShape(10.dp)).clickable { galleryLauncher.launch("image/*") },
+                        modifier = Modifier.size(80.dp).border(1.dp, borderColor, RoundedCornerShape(10.dp)).clickable {
+                            galleryLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                        },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(Icons.Default.Add, null, tint = Color.Gray)
@@ -203,7 +278,33 @@ fun AddProductScreen(navController: NavController, productViewModel: ProductView
             }
 
             Spacer(modifier = Modifier.height(30.dp))
-            SectionHeader(text = "4. WHAT ARE YOU LOOKING FOR?", color = sectionTitleColor)
+            SectionHeader(text = "4. LOCATION", color = sectionTitleColor)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            OutlinedTextField(
+                value = location,
+                onValueChange = { location = it },
+                placeholder = { Text("City, Country", color = Color.LightGray) },
+                leadingIcon = { Icon(Icons.Default.LocationOn, null, tint = primaryGreen) },
+                trailingIcon = {
+                    IconButton(onClick = {
+                        locationPermissionLauncher.launch(
+                            arrayOf(
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.ACCESS_COARSE_LOCATION
+                            )
+                        )
+                    }) {
+                        Icon(Icons.Default.MyLocation, "Detect", tint = primaryGreen)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                colors = OutlinedTextFieldDefaults.colors(unfocusedBorderColor = borderColor, focusedBorderColor = primaryGreen)
+            )
+
+            Spacer(modifier = Modifier.height(30.dp))
+            SectionHeader(text = "5. WHAT ARE YOU LOOKING FOR?", color = sectionTitleColor)
             Spacer(modifier = Modifier.height(12.dp))
 
             OutlinedTextField(
@@ -227,7 +328,7 @@ fun AddProductScreen(navController: NavController, productViewModel: ProductView
             Button(
                 onClick = { 
                     if (title.isNotEmpty() && imageUris.isNotEmpty()) {
-                        productViewModel.addProduct(title, description, selectedCategory, lookingFor, imageUris)
+                        productViewModel.addProduct(title, description, selectedCategory, lookingFor, location, imageUris)
                     } else {
                         Toast.makeText(context, "Title and at least one image required", Toast.LENGTH_SHORT).show()
                     }
