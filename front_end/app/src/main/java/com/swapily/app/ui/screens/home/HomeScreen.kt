@@ -93,13 +93,14 @@ fun HomeScreen(
     val isLoading by productViewModel.loading.collectAsState()
 
     val filteredProducts = products.filter {
+        val matchesUser = it.userId != user?.uid
         val matchesSearch = it.title.contains(searchQuery, ignoreCase = true) ||
                 it.description.contains(searchQuery, ignoreCase = true)
         val matchesCategory = selectedCategory == "All" || it.category.equals(selectedCategory, ignoreCase = true)
         val matchesLocation = selectedLocation == "All" || 
                 it.location.contains(selectedLocation, ignoreCase = true) || 
                 selectedLocation.contains(it.location, ignoreCase = true)
-        matchesSearch && matchesCategory && matchesLocation
+        matchesUser && matchesSearch && matchesCategory && matchesLocation
     }
 
     Scaffold(
@@ -287,12 +288,6 @@ fun HomeScreen(
                         fontSize = 26.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextDark
-                    )
-
-                    Text(
-                        "View all",
-                        color = GreenPrimary,
-                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }

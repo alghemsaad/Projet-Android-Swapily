@@ -43,6 +43,8 @@ fun PublicProfileScreen(
     productViewModel: ProductViewModel
 ) {
     var user by remember { mutableStateOf<User?>(null) }
+    var reviews by remember { mutableStateOf<List<com.swapily.app.data.model.Review>>(emptyList()) }
+    var showAllReviews by remember { mutableStateOf(false) }
     val allProducts by productViewModel.products.collectAsState()
     val userProducts = allProducts.filter { it.userId == userId }
     
@@ -50,6 +52,7 @@ fun PublicProfileScreen(
 
     LaunchedEffect(userId) {
         user = authViewModel.getOtherUserProfile(userId)
+        reviews = authViewModel.fetchUserReviews(userId)
     }
 
     Scaffold(
@@ -154,9 +157,11 @@ fun PublicProfileScreen(
                     ) {
                         StatColumn(userProducts.size.toString(), "LISTINGS", Modifier.weight(1f))
                         VerticalDivider(modifier = Modifier.height(40.dp), color = Color.LightGray.copy(alpha = 0.5f))
-                        StatColumn(user?.swapsCount.toString(), "SWAPS", Modifier.weight(1f))
+                        val formattedSwaps = "%.1f".format(user?.swapsCount?.toDouble() ?: 0.0)
+                        StatColumn(formattedSwaps, "SWAPS", Modifier.weight(1f))
                         VerticalDivider(modifier = Modifier.height(40.dp), color = Color.LightGray.copy(alpha = 0.5f))
-                        StatColumn(user?.rating.toString(), "RATING", Modifier.weight(1f), isRating = true)
+                        val formattedRating = "%.1f".format(user?.rating ?: 0.0)
+                        StatColumn(formattedRating, "RATING", Modifier.weight(1f), isRating = true)
                     }
                 }
 
@@ -172,24 +177,6 @@ fun PublicProfileScreen(
                     )
                     
                     Spacer(modifier = Modifier.height(24.dp))
-                    
-                    // Trust Badges
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        BadgeCard(
-                            icon = Icons.Default.VerifiedUser,
-                            title = "Identity Verified",
-                            subtitle = "SWAPILY CONFIDENCE",
-                            modifier = Modifier.weight(1f)
-                        )
-                        BadgeCard(
-                            icon = Icons.Default.Eco,
-                            title = "Eco-Contributor",
-                            subtitle = "LEVEL 4",
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(30.dp))
 
                     // Reviews Section
                     Row(
@@ -198,13 +185,27 @@ fun PublicProfileScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("Reviews (${user?.reviewsCount})", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                        Text("See all reviews", color = GreenPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        if (reviews.size > 3) {
+                            Text(
+                                if (showAllReviews) "Show less" else "See all reviews",
+                                color = GreenPrimary,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.clickable { showAllReviews = !showAllReviews }
+                            )
+                        }
                     }
                     
                     Spacer(modifier = Modifier.height(16.dp))
                     
-                    ReviewItem("Marc L.", "2 weeks ago", "Great swap! The camera was exactly as described. Very friendly and punctual.")
-                    ReviewItem("Sarah J.", "1 month ago", "The ceramic pot is beautiful. Elena was very helpful with the exchange process.")
+                    if (reviews.isEmpty()) {
+                        Text("No reviews yet.", color = GrayText, fontSize = 14.sp, modifier = Modifier.padding(bottom = 20.dp))
+                    } else {
+                        val displayedReviews = if (showAllReviews) reviews else reviews.take(3)
+                        displayedReviews.forEach { review ->
+                            ReviewItem(review.fromUserName, formatTimestamp(review.timestamp), review.comment, review.rating)
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(30.dp))
 
@@ -255,25 +256,7 @@ fun StatColumn(value: String, label: String, modifier: Modifier, isRating: Boole
 }
 
 @Composable
-fun BadgeCard(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, subtitle: String, modifier: Modifier) {
-    Surface(
-        modifier = modifier,
-        color = Color(0xFFE8F8EF),
-        shape = RoundedCornerShape(12.dp)
-    ) {
-        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Icon(icon, null, tint = GreenPrimary, modifier = Modifier.size(24.dp))
-            Spacer(modifier = Modifier.width(8.dp))
-            Column {
-                Text(title, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                Text(subtitle, fontSize = 9.sp, color = GrayText)
-            }
-        }
-    }
-}
-
-@Composable
-fun ReviewItem(name: String, time: String, comment: String) {
+fun ReviewItem(name: String, time: String, comment: String, rating: Int = 5) {
     Column(modifier = Modifier.padding(bottom = 20.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Box(modifier = Modifier.size(32.dp).background(Color(0xFFF0F0F0), CircleShape), contentAlignment = Alignment.Center) {
@@ -285,11 +268,34 @@ fun ReviewItem(name: String, time: String, comment: String) {
                 Text(time, fontSize = 11.sp, color = GrayText)
             }
             Row {
-                repeat(5) { Icon(Icons.Default.Star, null, tint = GreenPrimary, modifier = Modifier.size(14.dp)) }
+                repeat(5) { index -> 
+                    Icon(
+                        imageVector = if (index < rating) Icons.Default.Star else Icons.Default.StarBorder,
+                        null, 
+                        tint = if (index < rating) GreenPrimary else Color.LightGray, 
+                        modifier = Modifier.size(14.dp)
+                    ) 
+                }
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
         Text(comment, fontSize = 13.sp, color = Color.Gray, lineHeight = 18.sp)
+    }
+}
+
+fun formatTimestamp(timestamp: Long): String {
+    val diff = System.currentTimeMillis() - timestamp
+    val seconds = diff / 1000
+    val minutes = seconds / 60
+    val hours = minutes / 60
+    val days = hours / 24
+
+    return when {
+        days > 30 -> "more than a month ago"
+        days > 0 -> "$days days ago"
+        hours > 0 -> "$hours hours ago"
+        minutes > 0 -> "$minutes minutes ago"
+        else -> "just now"
     }
 }
 
@@ -329,7 +335,7 @@ fun PublicProductCard(product: com.swapily.app.data.model.Product, modifier: Mod
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.History, null, tint = GrayText, modifier = Modifier.size(12.dp))
                 Spacer(modifier = Modifier.width(4.dp))
-                Text("Added 2 days ago", fontSize = 10.sp, color = GrayText)
+                Text(formatTimestamp(product.timestamp), fontSize = 10.sp, color = GrayText)
             }
         }
     }

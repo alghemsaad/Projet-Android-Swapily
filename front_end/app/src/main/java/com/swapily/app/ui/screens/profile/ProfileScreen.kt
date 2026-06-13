@@ -4,10 +4,11 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,8 +21,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
-import androidx.activity.ComponentActivity
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -39,24 +38,34 @@ import com.swapily.app.ui.theme.GreenLight
 import com.swapily.app.ui.theme.GreenPrimary
 import com.swapily.app.ui.theme.TextDark
 import com.swapily.app.ui.theme.White
+import com.swapily.app.viewmodel.SwapViewModel
 
 @Composable
 fun ProfileScreen(
     navController: NavController,
     viewModel: AuthViewModel,
-    productViewModel: ProductViewModel
+    productViewModel: ProductViewModel,
+    swapViewModel: SwapViewModel
 ) {
 
     val user by viewModel.profileUser.collectAsState()
     val isLoading by viewModel.loading.collectAsState()
     val allProducts by productViewModel.products.collectAsState()
     val userProducts = allProducts.filter { it.userId == user?.uid }
+
+    val allSwaps by swapViewModel.swaps.collectAsState()
+    val userSwapsList = allSwaps.filter { it.senderId == user?.uid || it.receiverId == user?.uid }
+    val totalSwapsCount = userSwapsList.size
+
+    var showAllProducts by remember { mutableStateOf(false) }
+    val displayedProducts = if (showAllProducts) userProducts else userProducts.take(2)
     
     var selectedTab by remember { mutableStateOf("Ongoing") }
     val favoriteProducts = allProducts.filter { user?.favorites?.contains(it.id) == true }
 
     LaunchedEffect(Unit) {
         viewModel.fetchUserProfile()
+        swapViewModel.fetchSwaps()
     }
 
     Scaffold(
@@ -73,9 +82,16 @@ fun ProfileScreen(
         ) {
 
             item {
-                TopProfileBar(onEditClick = {
-                    navController.navigate(Screen.EditProfile.route)
-                })
+                TopProfileBar(
+                    onEditClick = { navController.navigate(Screen.EditProfile.route) },
+                    onLogoutClick = {
+                        viewModel.logout()
+                        swapViewModel.clearData()
+                        navController.navigate(Screen.Login.route) {
+                            popUpTo(0) // Clear backstack
+                        }
+                    }
+                )
             }
 
             item {
@@ -84,7 +100,7 @@ fun ProfileScreen(
                         CircularProgressIndicator(color = GreenPrimary)
                     }
                 } else {
-                    UserProfileCard(user, userProducts.size)
+                    UserProfileCard(user, userProducts.size, totalSwapsCount)
                 }
             }
 
@@ -101,8 +117,19 @@ fun ProfileScreen(
                         fontWeight = FontWeight.Bold,
                         color = TextDark
                     )
-                    TextButton(onClick = { navController.navigate(Screen.AddProduct.route) }) {
-                        Text("Add New", color = GreenPrimary)
+                    Row {
+                        if (userProducts.size > 2 && !showAllProducts) {
+                            TextButton(onClick = { showAllProducts = true }) {
+                                Text("See All", color = GreenPrimary)
+                            }
+                        } else if (showAllProducts) {
+                            TextButton(onClick = { showAllProducts = false }) {
+                                Text("Show Less", color = GreenPrimary)
+                            }
+                        }
+                        TextButton(onClick = { navController.navigate(Screen.AddProduct.route) }) {
+                            Text("Add New", color = GreenPrimary)
+                        }
                     }
                 }
             }
@@ -112,7 +139,7 @@ fun ProfileScreen(
                     Text("No products added yet.", color = GrayText, modifier = Modifier.padding(bottom = 8.dp))
                 }
             } else {
-                items(userProducts) { product ->
+                items(displayedProducts) { product ->
                     MyProductCard(product, onEditClick = {
                         navController.navigate(Screen.EditProduct.createRoute(product.id))
                     })
@@ -162,7 +189,34 @@ fun ProfileScreen(
                             }
                         }
                     }
-                    else -> MySwapCard()
+                    "Ongoing" -> {
+                        val pendingSwaps = userSwapsList.filter { it.status == "PENDING" }
+                        if (pendingSwaps.isEmpty()) {
+                            Text("No pending swaps.", color = GrayText, modifier = Modifier.padding(vertical = 20.dp))
+                        } else {
+                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                pendingSwaps.forEach { swap ->
+                                    MySwapCard(swap, user?.uid ?: "", onClick = {
+                                        navController.navigate(Screen.Chat.createRoute(swap.id))
+                                    })
+                                }
+                            }
+                        }
+                    }
+                    "History" -> {
+                        val historySwaps = userSwapsList.filter { it.status != "PENDING" }
+                        if (historySwaps.isEmpty()) {
+                            Text("No history yet.", color = GrayText, modifier = Modifier.padding(vertical = 20.dp))
+                        } else {
+                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                historySwaps.forEach { swap ->
+                                    MySwapCard(swap, user?.uid ?: "", onClick = {
+                                        navController.navigate(Screen.Chat.createRoute(swap.id))
+                                    })
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -174,7 +228,7 @@ fun ProfileScreen(
 }
 
 @Composable
-fun TopProfileBar(onEditClick: () -> Unit) {
+fun TopProfileBar(onEditClick: () -> Unit, onLogoutClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -204,14 +258,14 @@ fun TopProfileBar(onEditClick: () -> Unit) {
             )
         }
 
-        IconButton(onClick = { /* TODO: Notifications */ }) {
-            Icon(Icons.Default.NotificationsNone, null, tint = GreenPrimary)
+        IconButton(onClick = onLogoutClick) {
+            Icon(Icons.AutoMirrored.Filled.Logout, null, tint = Color.Red)
         }
     }
 }
 
 @Composable
-fun UserProfileCard(user: User?, itemsCount: Int) {
+fun UserProfileCard(user: User?, itemsCount: Int, totalSwapsCount: Int) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
@@ -280,8 +334,10 @@ fun UserProfileCard(user: User?, itemsCount: Int) {
 
             Row(modifier = Modifier.fillMaxWidth()) {
                 StatItem(itemsCount.toString(), "Items", Modifier.weight(1f))
-                StatItem((user?.swapsCount ?: 0).toString(), "Swaps", Modifier.weight(1f))
-                StatItem((user?.rating ?: 0.0).toString(), "Reviews", Modifier.weight(1f))
+                val formattedSwaps = "%.1f".format(totalSwapsCount.toDouble())
+                StatItem(formattedSwaps, "Swaps", Modifier.weight(1f))
+                val formattedRating = "%.1f".format(user?.rating ?: 0.0)
+                StatItem(formattedRating, "Reviews", Modifier.weight(1f))
             }
         }
     }
@@ -330,9 +386,15 @@ fun SwapTabs(selectedTab: String, onTabSelected: (String) -> Unit) {
 }
 
 @Composable
-fun MySwapCard() {
+fun MySwapCard(swap: com.swapily.app.data.model.Swap, currentUserUid: String, onClick: () -> Unit) {
+    val isSender = swap.senderId == currentUserUid
+    val otherPartyName = if (isSender) swap.receiverName else swap.senderName
+    val otherPartyImage = if (isSender) swap.receiverImage else swap.senderImage
+    
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(White),
         elevation = CardDefaults.cardElevation(2.dp),
@@ -342,17 +404,41 @@ fun MySwapCard() {
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // User Profile Image (Other party)
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .background(GreenLight),
+                contentAlignment = Alignment.Center
+            ) {
+                if (!otherPartyImage.isNullOrEmpty()) {
+                    AsyncImage(
+                        model = otherPartyImage,
+                        contentDescription = null,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Icon(Icons.Default.Person, null, tint = GreenPrimary, modifier = Modifier.size(24.dp))
+                }
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
             // Stack of images for the swap
             Box(modifier = Modifier.width(96.dp)) {
+                // ... rest of the code ...
                 // Item 1 (Left)
-                Image(
-                    painter = painterResource(id = R.drawable.img1),
+                AsyncImage(
+                    model = swap.senderProductImage,
                     contentDescription = null,
                     modifier = Modifier
                         .size(52.dp)
                         .clip(RoundedCornerShape(10.dp))
                         .border(2.dp, White, RoundedCornerShape(10.dp)),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(id = R.drawable.img1)
                 )
 
                 // Swap Icon Box in the middle
@@ -360,7 +446,7 @@ fun MySwapCard() {
                     modifier = Modifier
                         .size(52.dp)
                         .align(Alignment.Center)
-                        .padding(horizontal = 8.dp) // creates overlap look
+                        .padding(horizontal = 8.dp) 
                         .clip(RoundedCornerShape(10.dp))
                         .background(GreenLight.copy(alpha = 0.9f))
                         .border(2.dp, White, RoundedCornerShape(10.dp)),
@@ -375,15 +461,16 @@ fun MySwapCard() {
                 }
 
                 // Item 2 (Right)
-                Image(
-                    painter = painterResource(id = R.drawable.img2),
+                AsyncImage(
+                    model = swap.receiverProductImage,
                     contentDescription = null,
                     modifier = Modifier
                         .size(52.dp)
                         .align(Alignment.CenterEnd)
                         .clip(RoundedCornerShape(10.dp))
                         .border(2.dp, White, RoundedCornerShape(10.dp)),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
+                    placeholder = painterResource(id = R.drawable.img2)
                 )
             }
 
@@ -391,9 +478,16 @@ fun MySwapCard() {
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    "Eco Sneakers vs iPad Mini",
-                    fontSize = 15.sp,
+                    otherPartyName,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
+                    color = GreenPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    "${swap.senderProductTitle} vs ${swap.receiverProductTitle}",
+                    fontSize = 13.sp,
                     color = TextDark,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -408,7 +502,7 @@ fun MySwapCard() {
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        "Pending validation",
+                        swap.status,
                         color = GreenPrimary,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.Medium
@@ -417,7 +511,7 @@ fun MySwapCard() {
             }
 
             Icon(
-                Icons.Default.KeyboardArrowRight,
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 null,
                 tint = GrayText.copy(alpha = 0.5f)
             )

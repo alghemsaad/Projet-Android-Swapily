@@ -30,9 +30,12 @@ import com.swapily.app.data.model.Product
 import com.swapily.app.data.model.User
 import com.swapily.app.viewmodel.ProductViewModel
 import com.swapily.app.viewmodel.AuthViewModel
+import com.swapily.app.viewmodel.SwapViewModel
 
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import com.swapily.app.ui.Navigation.Screen
 
 @Composable
@@ -40,7 +43,8 @@ fun ProductDetailScreen(
     navController: NavController, 
     productId: String,
     productViewModel: ProductViewModel,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
+    swapViewModel: SwapViewModel
 ) {
     val products by productViewModel.products.collectAsState()
     val favorites by productViewModel.favorites.collectAsState()
@@ -48,10 +52,13 @@ fun ProductDetailScreen(
     val product = products.find { it.id == productId }
     val context = LocalContext.current
     
+    val userProducts = products.filter { it.userId == currentUser?.uid }
+
     var productOwner by remember { mutableStateOf<User?>(null) }
     val isFavorite = favorites.contains(productId)
     
     var showReviewDialog by remember { mutableStateOf(false) }
+    var showSwapDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         authViewModel.fetchUserProfile()
@@ -96,7 +103,14 @@ fun ProductDetailScreen(
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OutlinedIconButton(
-                        onClick = { /* TODO Chat */ },
+                        onClick = { 
+                            if (currentUser == null) {
+                                android.widget.Toast.makeText(context, "Please login first", android.widget.Toast.LENGTH_SHORT).show()
+                            } else {
+                                // For now, we can create a chat directly or navigate to messages
+                                navController.navigate(Screen.Swaps.route)
+                            }
+                        },
                         modifier = Modifier.size(56.dp),
                         shape = RoundedCornerShape(12.dp),
                         border = BorderStroke(1.dp, Color.LightGray)
@@ -105,7 +119,15 @@ fun ProductDetailScreen(
                     }
 
                     Button(
-                        onClick = { /* TODO Propose Swap */ },
+                        onClick = { 
+                            if (currentUser == null) {
+                                android.widget.Toast.makeText(context, "Please login first", android.widget.Toast.LENGTH_SHORT).show()
+                            } else if (currentUser?.uid == product.userId) {
+                                android.widget.Toast.makeText(context, "This is your product", android.widget.Toast.LENGTH_SHORT).show()
+                            } else {
+                                showSwapDialog = true
+                            }
+                        },
                         modifier = Modifier
                             .weight(1f)
                             .height(56.dp),
@@ -122,6 +144,29 @@ fun ProductDetailScreen(
             }
         }
     ) { paddingValues ->
+        if (showSwapDialog) {
+            SelectProductDialog(
+                userProducts = userProducts,
+                onDismiss = { showSwapDialog = false },
+                onSelect = { selectedProduct ->
+                    swapViewModel.proposeSwap(
+                        receiverId = product.userId,
+                        receiverName = productOwner?.name ?: "User",
+                        receiverImage = productOwner?.image ?: "",
+                        senderProductId = selectedProduct.id,
+                        senderProductTitle = selectedProduct.title,
+                        senderProductImage = selectedProduct.images.firstOrNull() ?: "",
+                        receiverProductId = product.id,
+                        receiverProductTitle = product.title,
+                        receiverProductImage = product.images.firstOrNull() ?: "",
+                        senderName = currentUser?.name ?: "Me",
+                        senderImage = currentUser?.image ?: ""
+                    )
+                    showSwapDialog = false
+                    android.widget.Toast.makeText(context, "Swap proposal sent!", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            )
+        }
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -305,36 +350,6 @@ fun ProductDetailScreen(
                     TagChip("#Sustainable")
                 }
 
-                Spacer(modifier = Modifier.height(30.dp))
-
-                // CIRCULAR IMPACT
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
-                    color = impactBg
-                ) {
-                    Row(
-                        modifier = Modifier.padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier.size(44.dp).background(primaryGreen.copy(alpha = 0.3f), RoundedCornerShape(10.dp)),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Icon(Icons.Default.Eco, contentDescription = null, tint = Color(0xFF67B58D))
-                        }
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Column {
-                            Text(text = "Circular Impact", color = Color.White, fontWeight = FontWeight.Bold)
-                            Text(
-                                text = "Swapping this item saves approximately 4.5kg of CO2 compared to buying new.",
-                                color = Color.White.copy(alpha = 0.7f),
-                                fontSize = 12.sp
-                            )
-                        }
-                    }
-                }
-                
                 Spacer(modifier = Modifier.height(20.dp))
             }
         }
@@ -434,6 +449,50 @@ fun ReviewDialog(ownerName: String, onDismiss: () -> Unit, onSubmit: (Int, Strin
                 Text("Submit")
             }
         },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+fun SelectProductDialog(
+    userProducts: List<Product>,
+    onDismiss: () -> Unit,
+    onSelect: (Product) -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Select an item to swap") },
+        text = {
+            if (userProducts.isEmpty()) {
+                Text("You don't have any products to swap. Add one first!")
+            } else {
+                LazyColumn(modifier = Modifier.heightIn(max = 400.dp)) {
+                    items(userProducts) { product ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onSelect(product) }
+                                .padding(vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            AsyncImage(
+                                model = product.images.firstOrNull(),
+                                contentDescription = null,
+                                modifier = Modifier.size(50.dp).clip(RoundedCornerShape(8.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(product.title, modifier = Modifier.weight(1f))
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismiss) {
                 Text("Cancel")

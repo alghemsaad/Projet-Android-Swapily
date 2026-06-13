@@ -189,7 +189,8 @@ class AuthViewModel : ViewModel() {
                 fromUserName = currentUserName,
                 toUserId = toUserId,
                 rating = rating,
-                comment = comment
+                comment = comment,
+                timestamp = System.currentTimeMillis()
             )
             
             // Add review to a "reviews" collection
@@ -236,5 +237,15 @@ class AuthViewModel : ViewModel() {
                 }
             }
         }
+    }
+
+    fun logout() {
+        repository.logout()
+        _profileUser.value = null
+        _success.value = false
+    }
+
+    suspend fun fetchUserReviews(userId: String): List<Review> {
+        return repository.getUserReviews(userId).getOrDefault(emptyList())
     }
 }
