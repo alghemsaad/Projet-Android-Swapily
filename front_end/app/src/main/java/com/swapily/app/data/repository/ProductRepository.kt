@@ -76,4 +76,22 @@ class ProductRepository {
             }
         awaitClose { listener.remove() }
     }
+
+    suspend fun updateProduct(product: Product): Result<Unit> {
+        return try {
+            firestore.collection("products").document(product.id).set(product).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun deleteProduct(productId: String): Result<Unit> {
+        return try {
+            firestore.collection("products").document(productId).delete().await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

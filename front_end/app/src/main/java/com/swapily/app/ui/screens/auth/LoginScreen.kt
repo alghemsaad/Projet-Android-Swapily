@@ -47,9 +47,7 @@ import com.swapily.app.R
 import com.swapily.app.viewmodel.AuthViewModel
 
 @Composable
-fun LoginScreen(navController: NavController) {
-
-    val viewModel: AuthViewModel = viewModel()
+fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
 
     val success by viewModel.success.collectAsState()
     val registerSuccess by viewModel.registerSuccess.collectAsState()

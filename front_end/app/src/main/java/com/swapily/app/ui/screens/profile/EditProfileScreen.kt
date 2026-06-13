@@ -41,7 +41,7 @@ import java.util.*
 @Composable
 fun EditProfileScreen(
     navController: NavController,
-    viewModel: AuthViewModel = viewModel()
+    viewModel: AuthViewModel
 ) {
     val context = LocalContext.current
     val user by viewModel.profileUser.collectAsState()

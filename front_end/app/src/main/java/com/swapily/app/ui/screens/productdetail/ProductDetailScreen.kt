@@ -9,6 +9,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,21 +27,45 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.swapily.app.R
 import com.swapily.app.data.model.Product
+import com.swapily.app.data.model.User
 import com.swapily.app.viewmodel.ProductViewModel
 import com.swapily.app.viewmodel.AuthViewModel
 
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import com.swapily.app.ui.Navigation.Screen
 
 @Composable
 fun ProductDetailScreen(
     navController: NavController, 
     productId: String,
-    productViewModel: ProductViewModel = viewModel(),
-    authViewModel: AuthViewModel = viewModel()
+    productViewModel: ProductViewModel,
+    authViewModel: AuthViewModel
 ) {
     val products by productViewModel.products.collectAsState()
+    val favorites by productViewModel.favorites.collectAsState()
+    val currentUser by authViewModel.profileUser.collectAsState()
     val product = products.find { it.id == productId }
+    val context = LocalContext.current
+    
+    var productOwner by remember { mutableStateOf<User?>(null) }
+    val isFavorite = favorites.contains(productId)
+    
+    var showReviewDialog by remember { mutableStateOf(false) }
+
+    LaunchedEffect(Unit) {
+        authViewModel.fetchUserProfile()
+    }
+
+    LaunchedEffect(currentUser) {
+        productViewModel.syncFavorites(currentUser)
+    }
+
+    LaunchedEffect(product) {
+        product?.let {
+            productOwner = authViewModel.getOtherUserProfile(it.userId)
+        }
+    }
     
     val primaryGreen = Color(0xFF0D5C3D)
     val lightGreen = Color(0xFFE8F8EF)
@@ -137,7 +162,21 @@ fun ProductDetailScreen(
                     CircleButton(icon = Icons.AutoMirrored.Filled.ArrowBack, onClick = { navController.popBackStack() })
                     Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         CircleButton(icon = Icons.Outlined.Share, onClick = { /* TODO */ })
-                        CircleButton(icon = Icons.Outlined.FavoriteBorder, onClick = { /* TODO */ })
+                        CircleButton(
+                            icon = if (isFavorite) Icons.Default.Favorite else Icons.Outlined.FavoriteBorder,
+                            iconColor = if (isFavorite) Color.Red else Color.Black,
+                            onClick = { 
+                                if (currentUser == null) {
+                                    android.widget.Toast.makeText(context, "Please login first", android.widget.Toast.LENGTH_SHORT).show()
+                                } else {
+                                    productViewModel.toggleFavorite(productId, currentUser) { updatedUser ->
+                                        authViewModel.updateUserProfile(updatedUser)
+                                        val message = if (!isFavorite) "Added to favorites" else "Removed from favorites"
+                                        android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            }
+                        )
                     }
                 }
 
@@ -192,8 +231,21 @@ fun ProductDetailScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                // USER INFO (OWNER) - For simplicity using a fixed one or we could fetch
-                OwnerCard(primaryGreen, grayText)
+                // USER INFO (OWNER)
+                OwnerCard(productOwner, primaryGreen, grayText, onReviewClick = { showReviewDialog = true }, onViewClick = {
+                    productOwner?.let { navController.navigate(Screen.PublicProfile.createRoute(it.uid)) }
+                })
+
+                if (showReviewDialog && productOwner != null) {
+                    ReviewDialog(
+                        ownerName = productOwner?.name ?: "User",
+                        onDismiss = { showReviewDialog = false },
+                        onSubmit = { rating, comment ->
+                            authViewModel.submitReview(productOwner!!.uid, rating, comment)
+                            showReviewDialog = false
+                        }
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(24.dp))
 
@@ -290,7 +342,7 @@ fun ProductDetailScreen(
 }
 
 @Composable
-fun OwnerCard(primaryGreen: Color, grayText: Color) {
+fun OwnerCard(user: User?, primaryGreen: Color, grayText: Color, onReviewClick: () -> Unit, onViewClick: () -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -301,12 +353,21 @@ fun OwnerCard(primaryGreen: Color, grayText: Color) {
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box {
-                Image(
-                    painter = painterResource(id = R.drawable.img1),
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp).clip(CircleShape),
-                    contentScale = ContentScale.Crop
-                )
+                if (user?.image.isNullOrEmpty()) {
+                    Image(
+                        painter = painterResource(id = R.drawable.img1),
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp).clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    AsyncImage(
+                        model = user!!.image,
+                        contentDescription = null,
+                        modifier = Modifier.size(48.dp).clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                }
                 Box(
                     modifier = Modifier.size(16.dp).background(primaryGreen, CircleShape).align(Alignment.BottomEnd).border(1.5.dp, Color.White, CircleShape),
                     contentAlignment = Alignment.Center
@@ -316,14 +377,17 @@ fun OwnerCard(primaryGreen: Color, grayText: Color) {
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = "User Profile", fontWeight = FontWeight.Bold, fontSize = 16.sp)
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = user?.name ?: "Loading...", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable { onReviewClick() }
+                ) {
                     Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFFFFB400), modifier = Modifier.size(14.dp))
-                    Text(text = " 4.9 (42 swaps)", color = grayText, fontSize = 12.sp)
+                    Text(text = " ${user?.rating ?: 0.0} (${user?.reviewsCount ?: 0} reviews)", color = grayText, fontSize = 12.sp)
                 }
             }
             OutlinedButton(
-                onClick = { /* View Profile */ },
+                onClick = onViewClick,
                 shape = RoundedCornerShape(8.dp),
                 border = BorderStroke(1.dp, Color.LightGray),
                 modifier = Modifier.height(36.dp)
@@ -335,7 +399,55 @@ fun OwnerCard(primaryGreen: Color, grayText: Color) {
 }
 
 @Composable
-fun CircleButton(icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
+fun ReviewDialog(ownerName: String, onDismiss: () -> Unit, onSubmit: (Int, String) -> Unit) {
+    var rating by remember { mutableStateOf(5) }
+    var comment by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Review $ownerName") },
+        text = {
+            Column {
+                Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+                    repeat(5) { index ->
+                        val starIndex = index + 1
+                        IconButton(onClick = { rating = starIndex }) {
+                            Icon(
+                                imageVector = if (starIndex <= rating) Icons.Default.Star else Icons.Outlined.StarBorder,
+                                contentDescription = null,
+                                tint = if (starIndex <= rating) Color(0xFFFFB400) else Color.Gray
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = comment,
+                    onValueChange = { comment = it },
+                    label = { Text("Your comment") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = { onSubmit(rating, comment) }) {
+                Text("Submit")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+fun CircleButton(
+    icon: androidx.compose.ui.graphics.vector.ImageVector, 
+    iconColor: Color = Color.Black,
+    onClick: () -> Unit
+) {
     Surface(
         onClick = onClick,
         modifier = Modifier.size(44.dp),
@@ -343,7 +455,7 @@ fun CircleButton(icon: androidx.compose.ui.graphics.vector.ImageVector, onClick:
         color = Color.White.copy(alpha = 0.9f)
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp))
+            Icon(icon, contentDescription = null, modifier = Modifier.size(20.dp), tint = iconColor)
         }
     }
 }

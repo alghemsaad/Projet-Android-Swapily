@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import android.net.Uri
+import kotlinx.coroutines.tasks.await
+import com.swapily.app.data.model.Review
 
 class AuthViewModel : ViewModel() {
 
@@ -169,6 +171,51 @@ class AuthViewModel : ViewModel() {
             }
         } else {
             _error.value = "User not logged in"
+        }
+    }
+
+    suspend fun getOtherUserProfile(uid: String): User? {
+        return repository.getUserProfile(uid).getOrNull()
+    }
+
+    fun submitReview(toUserId: String, rating: Int, comment: String) {
+        val currentUserId = repository.getCurrentUserUid() ?: return
+        val currentUserName = _profileUser.value?.name ?: "Anonymous"
+        
+        viewModelScope.launch {
+            _loading.value = true
+            val review = com.swapily.app.data.model.Review(
+                fromUserId = currentUserId,
+                fromUserName = currentUserName,
+                toUserId = toUserId,
+                rating = rating,
+                comment = comment
+            )
+            
+            // Add review to a "reviews" collection
+            val firestore = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+            try {
+                firestore.collection("reviews").add(review).await()
+                
+                // Update target user's rating (simple logic for now)
+                val targetUserDoc = firestore.collection("users").document(toUserId).get().await()
+                val targetUser = targetUserDoc.toObject(User::class.java)
+                if (targetUser != null) {
+                    val newReviewsCount = targetUser.reviewsCount + 1
+                    val newRating = (targetUser.rating * targetUser.reviewsCount + rating) / newReviewsCount
+                    val updatedTargetUser = targetUser.copy(
+                        reviewsCount = newReviewsCount,
+                        rating = newRating
+                    )
+                    firestore.collection("users").document(toUserId).set(updatedTargetUser).await()
+                }
+                
+                _success.value = true // Reuse success for review submission
+            } catch (e: Exception) {
+                _error.value = e.message ?: "Failed to submit review"
+            } finally {
+                _loading.value = false
+            }
         }
     }
 

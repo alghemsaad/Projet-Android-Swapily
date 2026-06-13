@@ -3,15 +3,14 @@ package com.swapily.app.ui.screens.profile
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -19,32 +18,49 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
+import androidx.activity.ComponentActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.swapily.app.R
+import com.swapily.app.data.model.Product
 import com.swapily.app.data.model.User
 import com.swapily.app.viewmodel.AuthViewModel
+import com.swapily.app.viewmodel.ProductViewModel
 import com.swapily.app.ui.components.AppBottomBar
 import com.swapily.app.ui.Navigation.Screen
+import com.swapily.app.ui.screens.home.ProductCard
+import com.swapily.app.ui.theme.Background
+import com.swapily.app.ui.theme.GrayText
+import com.swapily.app.ui.theme.GreenLight
+import com.swapily.app.ui.theme.GreenPrimary
+import com.swapily.app.ui.theme.TextDark
+import com.swapily.app.ui.theme.White
 
 @Composable
-fun ProfileScreen(navController: NavController, viewModel: AuthViewModel = viewModel()) {
+fun ProfileScreen(
+    navController: NavController,
+    viewModel: AuthViewModel,
+    productViewModel: ProductViewModel
+) {
 
     val user by viewModel.profileUser.collectAsState()
     val isLoading by viewModel.loading.collectAsState()
+    val allProducts by productViewModel.products.collectAsState()
+    val userProducts = allProducts.filter { it.userId == user?.uid }
+    
+    var selectedTab by remember { mutableStateOf("Ongoing") }
+    val favoriteProducts = allProducts.filter { user?.favorites?.contains(it.id) == true }
 
     LaunchedEffect(Unit) {
         viewModel.fetchUserProfile()
     }
 
-    val bg = Color(0xFFE5F6EA)
-    val darkGreen = Color(0xFF0D5C3D)
-
     Scaffold(
-        containerColor = bg,
+        containerColor = Background,
         bottomBar = { AppBottomBar(navController) }
     ) { padding ->
 
@@ -65,65 +81,89 @@ fun ProfileScreen(navController: NavController, viewModel: AuthViewModel = viewM
             item {
                 if (isLoading) {
                     Box(modifier = Modifier.fillMaxWidth().height(200.dp), contentAlignment = Alignment.Center) {
-                        CircularProgressIndicator(color = darkGreen)
+                        CircularProgressIndicator(color = GreenPrimary)
                     }
                 } else {
-                    UserProfileCard(user)
+                    UserProfileCard(user, userProducts.size)
                 }
             }
 
+            // --- My Products Section ---
             item {
-                Text(
-                    "My Swaps",
-                    fontSize = 26.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            item {
-                SwapTabs()
-            }
-
-            item {
-                MySwapCard()
-            }
-
-            item {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Box(
-                        modifier = Modifier
-                            .size(46.dp)
-                            .background(Color(0xFF2D805A), RoundedCornerShape(10.dp)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(Icons.Default.AutoAwesome, null, tint = Color.White)
-                    }
-
-                    Spacer(modifier = Modifier.width(12.dp))
-
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
-                        "Smart Matching",
-                        fontSize = 26.sp,
-                        fontWeight = FontWeight.Bold
+                        "My Products",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextDark
                     )
+                    TextButton(onClick = { navController.navigate(Screen.AddProduct.route) }) {
+                        Text("Add New", color = GreenPrimary)
+                    }
+                }
+            }
+
+            if (userProducts.isEmpty()) {
+                item {
+                    Text("No products added yet.", color = GrayText, modifier = Modifier.padding(bottom = 8.dp))
+                }
+            } else {
+                items(userProducts) { product ->
+                    MyProductCard(product, onEditClick = {
+                        navController.navigate(Screen.EditProduct.createRoute(product.id))
+                    })
+                }
+            }
+            // ---------------------------
+
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "My Swaps",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextDark
+                    )
+                    IconButton(onClick = { /* TODO: Filter */ }) {
+                        Icon(Icons.Default.Tune, null, tint = GrayText)
+                    }
                 }
             }
 
             item {
-                Text(
-                    "These swappers have what you're looking for and\nwant your items.",
-                    fontSize = 17.sp,
-                    lineHeight = 24.sp,
-                    color = Color.DarkGray
-                )
+                SwapTabs(selectedTab) { selectedTab = it }
             }
 
             item {
-                MatchBigCard(onChatClick = { navController.navigate(Screen.Chat.route) })
-            }
-
-            item {
-                SmallMatchCard(onChatClick = { navController.navigate(Screen.Chat.route) })
+                when (selectedTab) {
+                    "Favorites" -> {
+                        if (favoriteProducts.isEmpty()) {
+                            Text("No favorites yet.", color = GrayText, modifier = Modifier.padding(vertical = 20.dp))
+                        } else {
+                            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                                favoriteProducts.forEach { product ->
+                                    ProductCard(
+                                        product = product,
+                                        navController = navController,
+                                        isFavorite = true, // It's in the favorites tab
+                                        user = user,
+                                        productViewModel = productViewModel,
+                                        authViewModel = viewModel
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    else -> MySwapCard()
+                }
             }
 
             item {
@@ -135,8 +175,6 @@ fun ProfileScreen(navController: NavController, viewModel: AuthViewModel = viewM
 
 @Composable
 fun TopProfileBar(onEditClick: () -> Unit) {
-    val darkGreen = Color(0xFF0D5C3D)
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -145,7 +183,7 @@ fun TopProfileBar(onEditClick: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         IconButton(onClick = onEditClick) {
-            Icon(Icons.Default.Edit, null, tint = darkGreen)
+            Icon(Icons.Default.Edit, null, tint = GreenPrimary)
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -162,24 +200,22 @@ fun TopProfileBar(onEditClick: () -> Unit) {
                 "Swapily",
                 fontSize = 30.sp,
                 fontWeight = FontWeight.Bold,
-                color = darkGreen
+                color = GreenPrimary
             )
         }
 
         IconButton(onClick = { /* TODO: Notifications */ }) {
-            Icon(Icons.Default.NotificationsNone, null, tint = darkGreen)
+            Icon(Icons.Default.NotificationsNone, null, tint = GreenPrimary)
         }
     }
 }
 
 @Composable
-fun UserProfileCard(user: User?) {
-    val darkGreen = Color(0xFF0D5C3D)
-
+fun UserProfileCard(user: User?, itemsCount: Int) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(Color.White),
+        colors = CardDefaults.cardColors(White),
         elevation = CardDefaults.cardElevation(3.dp)
     ) {
         Column(
@@ -194,7 +230,7 @@ fun UserProfileCard(user: User?) {
                         contentDescription = null,
                         modifier = Modifier
                             .size(118.dp)
-                            .border(6.dp, Color(0xFFBDF4D5), CircleShape)
+                            .border(6.dp, GreenLight, CircleShape)
                             .clip(CircleShape),
                         contentScale = ContentScale.Crop
                     )
@@ -207,7 +243,7 @@ fun UserProfileCard(user: User?) {
                         contentDescription = "Profile Image",
                         modifier = Modifier
                             .size(118.dp)
-                            .border(6.dp, Color(0xFFBDF4D5), CircleShape)
+                            .border(6.dp, GreenLight, CircleShape)
                             .clip(CircleShape),
                         contentScale = ContentScale.Crop
                     )
@@ -217,39 +253,35 @@ fun UserProfileCard(user: User?) {
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
                         .size(32.dp)
-                        .background(darkGreen, CircleShape)
-                        .border(2.dp, Color.White, CircleShape),
+                        .background(GreenPrimary, CircleShape)
+                        .border(2.dp, White, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(Icons.Default.Verified, null, tint = Color.White, modifier = Modifier.size(20.dp))
+                    Icon(Icons.Default.Verified, null, tint = White, modifier = Modifier.size(20.dp))
                 }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            Text(user?.name ?: "User Name", fontSize = 25.sp, fontWeight = FontWeight.Bold)
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text("☆  4.9 (42 reviews)", fontSize = 16.sp)
+            Text(user?.name ?: "User Name", fontSize = 25.sp, fontWeight = FontWeight.Bold, color = TextDark)
 
             Spacer(modifier = Modifier.height(8.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.LocationOn, null, tint = Color.Gray, modifier = Modifier.size(20.dp))
-                Text(user?.location?.ifEmpty { "Non spécifié" } ?: "Non spécifié", color = Color.Gray, fontSize = 17.sp)
+                Icon(Icons.Default.LocationOn, null, tint = GrayText, modifier = Modifier.size(20.dp))
+                Text(user?.location?.ifEmpty { "Non spécifié" } ?: "Non spécifié", color = GrayText, fontSize = 17.sp)
             }
 
             Spacer(modifier = Modifier.height(22.dp))
 
-            HorizontalDivider(color = Color(0xFFEAEAEA))
+            HorizontalDivider(color = GrayText.copy(alpha = 0.1f))
 
             Spacer(modifier = Modifier.height(18.dp))
 
             Row(modifier = Modifier.fillMaxWidth()) {
-                StatItem("15", "Items", Modifier.weight(1f))
-                StatItem("28", "Swaps", Modifier.weight(1f))
-                StatItem("12kg", "CO2 Saved", Modifier.weight(1f))
+                StatItem(itemsCount.toString(), "Items", Modifier.weight(1f))
+                StatItem((user?.swapsCount ?: 0).toString(), "Swaps", Modifier.weight(1f))
+                StatItem((user?.rating ?: 0.0).toString(), "Reviews", Modifier.weight(1f))
             }
         }
     }
@@ -257,45 +289,42 @@ fun UserProfileCard(user: User?) {
 
 @Composable
 fun StatItem(value: String, label: String, modifier: Modifier = Modifier) {
-    val darkGreen = Color(0xFF0D5C3D)
-
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(value, color = darkGreen, fontSize = 25.sp, fontWeight = FontWeight.Bold)
-        Text(label, fontSize = 15.sp)
+        Text(value, color = GreenPrimary, fontSize = 25.sp, fontWeight = FontWeight.Bold)
+        Text(label, fontSize = 15.sp, color = GrayText)
     }
 }
 
 @Composable
-fun SwapTabs() {
-    val darkGreen = Color(0xFF0D5C3D)
-
+fun SwapTabs(selectedTab: String, onTabSelected: (String) -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp)
-            .background(Color(0xFFBFEFD1), RoundedCornerShape(28.dp))
+            .background(GreenLight, RoundedCornerShape(28.dp))
             .padding(5.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight()
-                .background(darkGreen, RoundedCornerShape(24.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("Ongoing", color = Color.White, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-        }
-
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxHeight(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text("History", fontSize = 18.sp)
+        val tabs = listOf("Ongoing", "History", "Favorites")
+        tabs.forEach { tab ->
+            val isSelected = selectedTab == tab
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxHeight()
+                    .then(if (isSelected) Modifier.background(GreenPrimary, RoundedCornerShape(24.dp)) else Modifier)
+                    .clickable { onTabSelected(tab) },
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    tab,
+                    color = if (isSelected) White else GrayText,
+                    fontSize = 16.sp,
+                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                )
+            }
         }
     }
 }
@@ -307,53 +336,53 @@ fun MySwapCard() {
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(White),
         elevation = CardDefaults.cardElevation(2.dp),
-        border = BorderStroke(1.dp, GrayText.copy(alpha = 0.2f))
+        border = BorderStroke(1.dp, GrayText.copy(alpha = 0.1f))
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Stack of images for the swap
-            Box(modifier = Modifier.width(90.dp)) {
-                // Item 1
+            Box(modifier = Modifier.width(96.dp)) {
+                // Item 1 (Left)
                 Image(
                     painter = painterResource(id = R.drawable.img1),
                     contentDescription = null,
                     modifier = Modifier
-                        .size(56.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .border(2.dp, White, RoundedCornerShape(8.dp)),
+                        .size(52.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .border(2.dp, White, RoundedCornerShape(10.dp)),
                     contentScale = ContentScale.Crop
                 )
 
-                // Swap Icon in the middle
+                // Swap Icon Box in the middle
                 Box(
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(52.dp)
                         .align(Alignment.Center)
-                        .offset(x = 0.dp)
-                        .background(GreenLight, CircleShape)
-                        .border(2.dp, White, CircleShape)
-                        .zIndex(1f),
+                        .padding(horizontal = 8.dp) // creates overlap look
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(GreenLight.copy(alpha = 0.9f))
+                        .border(2.dp, White, RoundedCornerShape(10.dp)),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         Icons.Default.SwapHoriz,
                         null,
                         tint = GreenPrimary,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                 }
 
-                // Item 2
+                // Item 2 (Right)
                 Image(
                     painter = painterResource(id = R.drawable.img2),
                     contentDescription = null,
                     modifier = Modifier
-                        .size(56.dp)
+                        .size(52.dp)
                         .align(Alignment.CenterEnd)
-                        .clip(RoundedCornerShape(8.dp))
-                        .border(2.dp, White, RoundedCornerShape(8.dp)),
+                        .clip(RoundedCornerShape(10.dp))
+                        .border(2.dp, White, RoundedCornerShape(10.dp)),
                     contentScale = ContentScale.Crop
                 )
             }
@@ -363,12 +392,13 @@ fun MySwapCard() {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     "Eco Sneakers vs iPad Mini",
-                    fontSize = 16.sp,
+                    fontSize = 15.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextDark,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                Spacer(modifier = Modifier.height(2.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         Icons.Default.Sync,
@@ -380,7 +410,7 @@ fun MySwapCard() {
                     Text(
                         "Pending validation",
                         color = GreenPrimary,
-                        fontSize = 14.sp,
+                        fontSize = 13.sp,
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -397,12 +427,10 @@ fun MySwapCard() {
 
 @Composable
 fun MatchBigCard(onChatClick: () -> Unit) {
-    val darkGreen = Color(0xFF0D5C3D)
-
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(Color.White),
+        colors = CardDefaults.cardColors(White),
         elevation = CardDefaults.cardElevation(3.dp)
     ) {
         Column(modifier = Modifier.padding(22.dp)) {
@@ -420,15 +448,15 @@ fun MatchBigCard(onChatClick: () -> Unit) {
                 Spacer(modifier = Modifier.width(12.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Thomas G.", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                    Text("☆ 4.8 • 1.2 km", fontSize = 14.sp)
+                    Text("Thomas G.", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                    Text("☆ 4.8 • 1.2 km", fontSize = 14.sp, color = GrayText)
                 }
 
                 Text(
                     "98% MATCH",
-                    color = darkGreen,
+                    color = GreenPrimary,
                     modifier = Modifier
-                        .background(Color(0xFFE8EFEA), RoundedCornerShape(6.dp))
+                        .background(GreenLight.copy(alpha = 0.5f), RoundedCornerShape(6.dp))
                         .padding(horizontal = 10.dp, vertical = 6.dp)
                 )
             }
@@ -437,12 +465,12 @@ fun MatchBigCard(onChatClick: () -> Unit) {
 
             Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Has:", fontSize = 16.sp)
+                    Text("Has:", fontSize = 16.sp, color = GrayText)
                     ProductImageBox(R.drawable.img3, "Minimalist Watch")
                 }
 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text("Wants:", fontSize = 16.sp)
+                    Text("Wants:", fontSize = 16.sp, color = GrayText)
                     ProductImageBox(R.drawable.img1, "Camera")
                 }
             }
@@ -455,11 +483,11 @@ fun MatchBigCard(onChatClick: () -> Unit) {
                     .fillMaxWidth()
                     .height(58.dp),
                 shape = RoundedCornerShape(10.dp),
-                colors = ButtonDefaults.buttonColors(darkGreen)
+                colors = ButtonDefaults.buttonColors(GreenPrimary)
             ) {
-                Icon(Icons.Default.ChatBubbleOutline, null, tint = Color.White)
+                Icon(Icons.Default.ChatBubbleOutline, null, tint = White)
                 Spacer(modifier = Modifier.width(10.dp))
-                Text("Propose a Swap", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                Text("Propose a Swap", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = White)
             }
         }
     }
@@ -483,9 +511,9 @@ fun ProductImageBox(image: Int, label: String) {
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(8.dp)
-                .background(Color.White.copy(alpha = 0.9f), RoundedCornerShape(4.dp))
+                .background(White.copy(alpha = 0.9f), RoundedCornerShape(4.dp))
                 .padding(horizontal = 8.dp, vertical = 4.dp),
-            color = Color(0xFF0D5C3D),
+            color = GreenPrimary,
             fontSize = 12.sp
         )
     }
@@ -496,7 +524,7 @@ fun SmallMatchCard(onChatClick: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
-        colors = CardDefaults.cardColors(Color.White),
+        colors = CardDefaults.cardColors(White),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
         Row(
@@ -515,18 +543,71 @@ fun SmallMatchCard(onChatClick: () -> Unit) {
             Spacer(modifier = Modifier.width(14.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Text("Sophie M.", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-                Text("85% Match • 2.5 km", color = Color.DarkGray)
+                Text("Sophie M.", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = TextDark)
+                Text("85% Match • 2.5 km", color = GrayText)
             }
 
             Box(
                 modifier = Modifier
                     .size(58.dp)
-                    .background(Color(0xFFBFEFD1), CircleShape)
+                    .background(GreenLight, CircleShape)
                     .clickable { onChatClick() },
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.ArrowForward, null, tint = Color(0xFF0D5C3D))
+                Icon(Icons.Default.ArrowForward, null, tint = GreenPrimary)
+            }
+        }
+    }
+}
+
+@Composable
+fun MyProductCard(product: Product, onEditClick: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(White),
+        elevation = CardDefaults.cardElevation(2.dp),
+        border = BorderStroke(1.dp, GrayText.copy(alpha = 0.1f))
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AsyncImage(
+                model = product.images.firstOrNull(),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(60.dp)
+                    .clip(RoundedCornerShape(10.dp)),
+                contentScale = ContentScale.Crop,
+                placeholder = painterResource(id = R.drawable.img1)
+            )
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    product.title,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextDark,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    product.category,
+                    fontSize = 13.sp,
+                    color = GrayText
+                )
+            }
+
+            IconButton(onClick = onEditClick) {
+                Icon(
+                    Icons.Default.Edit,
+                    contentDescription = "Edit",
+                    tint = GreenPrimary,
+                    modifier = Modifier.size(20.dp)
+                )
             }
         }
     }

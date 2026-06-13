@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.widget.Toast
+import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -38,17 +39,33 @@ import coil.compose.AsyncImage
 import com.google.android.gms.location.LocationServices
 import com.swapily.app.R
 import com.swapily.app.data.model.Product
+import com.swapily.app.data.model.User
 import com.swapily.app.ui.Navigation.Screen
 import com.swapily.app.ui.components.AppBottomBar
 import com.swapily.app.ui.theme.*
 import com.swapily.app.viewmodel.ProductViewModel
+import com.swapily.app.viewmodel.AuthViewModel
 import java.util.Locale
 
 @SuppressLint("MissingPermission")
 @Composable
-fun HomeScreen(navController: NavController, productViewModel: ProductViewModel = viewModel()) {
+fun HomeScreen(
+    navController: NavController,
+    productViewModel: ProductViewModel,
+    authViewModel: AuthViewModel
+) {
 
     val context = LocalContext.current
+    val user by authViewModel.profileUser.collectAsState()
+    val favorites by productViewModel.favorites.collectAsState()
+    
+    LaunchedEffect(Unit) {
+        authViewModel.fetchUserProfile()
+    }
+
+    LaunchedEffect(user) {
+        productViewModel.syncFavorites(user)
+    }
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
     var searchQuery by remember { mutableStateOf("") }
@@ -290,9 +307,9 @@ fun HomeScreen(navController: NavController, productViewModel: ProductViewModel 
 
             items(filteredProducts.chunked(2)) { pair ->
                 if (pair.size == 2) {
-                    ProductRow(pair[0], pair[1], navController)
+                    ProductRow(pair[0], pair[1], navController, favorites, user, productViewModel, authViewModel)
                 } else {
-                    ProductCard(pair[0], navController, modifier = Modifier.fillMaxWidth(0.5f))
+                    ProductCard(pair[0], navController, Modifier.fillMaxWidth(0.5f), favorites.contains(pair[0].id), user, productViewModel, authViewModel)
                 }
             }
 
@@ -438,18 +455,35 @@ fun SmartMatchCard() {
 }
 
 @Composable
-fun ProductRow(first: Product, second: Product, navController: NavController) {
+fun ProductRow(
+    first: Product, 
+    second: Product, 
+    navController: NavController,
+    favorites: Set<String>,
+    user: User?,
+    productViewModel: ProductViewModel,
+    authViewModel: AuthViewModel
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(18.dp)
     ) {
-        ProductCard(first, navController, Modifier.weight(1f))
-        ProductCard(second, navController, Modifier.weight(1f))
+        ProductCard(first, navController, Modifier.weight(1f), favorites.contains(first.id), user, productViewModel, authViewModel)
+        ProductCard(second, navController, Modifier.weight(1f), favorites.contains(second.id), user, productViewModel, authViewModel)
     }
 }
 
 @Composable
-fun ProductCard(product: Product, navController: NavController, modifier: Modifier = Modifier) {
+fun ProductCard(
+    product: Product, 
+    navController: NavController, 
+    modifier: Modifier = Modifier,
+    isFavorite: Boolean = false,
+    user: User? = null,
+    productViewModel: ProductViewModel? = null,
+    authViewModel: AuthViewModel? = null
+) {
+    val context = LocalContext.current
     Card(
         modifier = modifier
             .height(260.dp)
@@ -490,13 +524,24 @@ fun ProductCard(product: Product, navController: NavController, modifier: Modifi
                         .align(Alignment.BottomEnd)
                         .padding(10.dp)
                         .size(52.dp)
-                        .background(GreenLight, CircleShape),
+                        .background(GreenLight, CircleShape)
+                        .clickable {
+                            if (user == null) {
+                                android.widget.Toast.makeText(context, "Please login first", android.widget.Toast.LENGTH_SHORT).show()
+                            } else {
+                                productViewModel?.toggleFavorite(product.id, user) { updatedUser ->
+                                    authViewModel?.updateUserProfile(updatedUser)
+                                    val msg = if (!isFavorite) "Added to favorites" else "Removed"
+                                    android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        Icons.Default.FavoriteBorder,
-                        null,
-                        tint = GreenPrimary
+                        imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = null,
+                        tint = if (isFavorite) Color.Red else GreenPrimary
                     )
                 }
             }
