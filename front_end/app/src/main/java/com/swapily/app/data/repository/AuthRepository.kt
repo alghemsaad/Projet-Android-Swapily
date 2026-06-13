@@ -183,4 +183,21 @@ class AuthRepository {
     fun getCurrentUserUid(): String? {
         return auth.currentUser?.uid
     }
+
+    fun logout() {
+        auth.signOut()
+    }
+
+    suspend fun getUserReviews(userId: String): Result<List<com.swapily.app.data.model.Review>> {
+        return try {
+            val snapshot = firestore.collection("reviews")
+                .whereEqualTo("toUserId", userId)
+                .get().await()
+            val reviews = snapshot.toObjects(com.swapily.app.data.model.Review::class.java)
+            val sortedReviews = reviews.sortedByDescending { it.timestamp }
+            Result.success(sortedReviews)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

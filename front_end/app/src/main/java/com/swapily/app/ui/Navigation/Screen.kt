@@ -6,8 +6,8 @@ sealed class Screen(val route: String) {
     object Swaps : Screen("swaps")
     object Profile : Screen("profile")
     object AddProduct : Screen("add_product")
-    object Chat : Screen("chat/{userName}") {
-        fun createRoute(userName: String) = "chat/$userName"
+    object Chat : Screen("chat/{swapId}") {
+        fun createRoute(swapId: String) = "chat/$swapId"
     }
     object EditProfile : Screen("edit_profile")
     object ProductDetail : Screen("product_detail/{productId}") {

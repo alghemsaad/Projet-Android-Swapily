@@ -17,6 +17,7 @@ import com.swapily.app.ui.screens.profile.EditProductScreen
 import com.swapily.app.ui.screens.profile.PublicProfileScreen
 import com.swapily.app.viewmodel.AuthViewModel
 import com.swapily.app.viewmodel.ProductViewModel
+import com.swapily.app.viewmodel.SwapViewModel
 
 @Composable
 fun AppNavigation() {
@@ -24,6 +25,7 @@ fun AppNavigation() {
     val navController = rememberNavController()
     val authViewModel: AuthViewModel = viewModel()
     val productViewModel: ProductViewModel = viewModel()
+    val swapViewModel: SwapViewModel = viewModel()
 
     NavHost(
         navController = navController,
@@ -39,11 +41,11 @@ fun AppNavigation() {
         }
 
         composable(Screen.Swaps.route) {
-            MessagesScreen(navController)
+            MessagesScreen(navController, swapViewModel, authViewModel)
         }
 
         composable(Screen.Profile.route) {
-            ProfileScreen(navController, authViewModel, productViewModel)
+            ProfileScreen(navController, authViewModel, productViewModel, swapViewModel)
         }
 
         composable(Screen.AddProduct.route) {
@@ -51,9 +53,8 @@ fun AppNavigation() {
         }
 
         composable(Screen.Chat.route) { backStackEntry ->
-            // On récupère le nom depuis l'URL, ou on met "Utilisateur" par défaut
-            val userName = backStackEntry.arguments?.getString("userName") ?: "Utilisateur"
-            ChatScreen(navController, userName) // On envoie le nom à l'écran
+            val swapId = backStackEntry.arguments?.getString("swapId") ?: ""
+            ChatScreen(navController, swapId, swapViewModel, authViewModel)
         }
 
         composable(Screen.EditProfile.route) {
@@ -62,7 +63,7 @@ fun AppNavigation() {
 
         composable(Screen.ProductDetail.route) { backStackEntry ->
             val productId = backStackEntry.arguments?.getString("productId") ?: ""
-            ProductDetailScreen(navController, productId, productViewModel, authViewModel)
+            ProductDetailScreen(navController, productId, productViewModel, authViewModel, swapViewModel)
         }
 
         composable(Screen.EditProduct.route) { backStackEntry ->
