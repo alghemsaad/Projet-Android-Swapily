@@ -149,6 +149,15 @@ class AuthRepository {
         }
     }
 
+    suspend fun updateFcmToken(uid: String, token: String): Result<Unit> {
+        return try {
+            firestore.collection("users").document(uid).update("fcmToken", token).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
     suspend fun uploadProfileImage(uri: Uri, uid: String): Result<String> {
         return suspendCancellableCoroutine { continuation ->
             try {

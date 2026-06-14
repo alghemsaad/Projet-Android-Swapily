@@ -12,5 +12,6 @@ data class User(
     val swapsCount: Int = 0,
     val reviewsCount: Int = 0,
     val rating: Double = 0.0,
-    val favorites: List<String> = emptyList()
+    val favorites: List<String> = emptyList(),
+    val fcmToken: String = ""
 )

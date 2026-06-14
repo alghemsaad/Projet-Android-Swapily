@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import android.net.Uri
 import kotlinx.coroutines.tasks.await
 import com.swapily.app.data.model.Review
+import com.google.firebase.messaging.FirebaseMessaging
 
 class AuthViewModel : ViewModel() {
 
@@ -46,6 +47,18 @@ class AuthViewModel : ViewModel() {
         _registerSuccess.value = false
     }
 
+    fun updateFcmToken() {
+        val uid = repository.getCurrentUserUid() ?: return
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                viewModelScope.launch {
+                    repository.updateFcmToken(uid, token)
+                }
+            }
+        }
+    }
+
     fun register(
         name: String,
         email: String,
@@ -65,7 +78,7 @@ class AuthViewModel : ViewModel() {
 
             _loading.value = false
             result.onSuccess {
-
+                updateFcmToken()
                 _registerSuccess.value = true
 
             }.onFailure {
@@ -94,7 +107,7 @@ class AuthViewModel : ViewModel() {
             _loading.value = false
 
             result.onSuccess {
-
+                updateFcmToken()
                 _success.value = true
 
             }.onFailure {
@@ -111,6 +124,7 @@ class AuthViewModel : ViewModel() {
             val result = repository.signInWithGoogle(idToken)
             _loading.value = false
             result.onSuccess {
+                updateFcmToken()
                 _success.value = true
             }.onFailure {
                 _error.value = it.message ?: "Google Sign In Error"
@@ -128,6 +142,7 @@ class AuthViewModel : ViewModel() {
             val result = repository.signInWithFacebook(accessToken)
             _loading.value = false
             result.onSuccess {
+                updateFcmToken()
                 _success.value = true
             }.onFailure {
                 _error.value = it.message ?: "Facebook Sign In Error"

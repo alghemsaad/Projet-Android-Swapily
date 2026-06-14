@@ -1,6 +1,7 @@
 package com.swapily.app.ui.screens.messages
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -39,7 +40,15 @@ fun MessagesScreen(
     val swaps by swapViewModel.swaps.collectAsState()
     val currentUser by authViewModel.profileUser.collectAsState()
 
+    var selectedTab by remember { mutableStateOf("Active") }
+
     val userSwaps = swaps.filter { it.senderId == currentUser?.uid || it.receiverId == currentUser?.uid }
+    
+    val filteredSwaps = when (selectedTab) {
+        "Active" -> userSwaps.filter { it.status == "PENDING" }
+        "Archive" -> userSwaps.filter { it.status == "ACCEPTED" || it.status == "REJECTED" || it.status == "COMPLETED" }
+        else -> userSwaps
+    }
 
     LaunchedEffect(Unit) {
         swapViewModel.fetchSwaps()
@@ -59,19 +68,25 @@ fun MessagesScreen(
         ) {
             Spacer(modifier = Modifier.height(16.dp))
 
-            HeaderSection()
+            HeaderSection(
+                selectedTab = selectedTab,
+                onTabSelected = { selectedTab = it }
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            if (userSwaps.isEmpty()) {
+            if (filteredSwaps.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No swaps yet.", color = GrayText)
+                    Text(
+                        if (selectedTab == "Active") "No active swaps." else "No archived swaps.",
+                        color = GrayText
+                    )
                 }
             } else {
                 LazyColumn(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    items(userSwaps) { swap ->
+                    items(filteredSwaps) { swap ->
                         val isSender = swap.senderId == currentUser?.uid
                         val otherPartyName = if (isSender) swap.receiverName else swap.senderName
                         val otherPartyImage = if (isSender) swap.receiverImage else swap.senderImage
@@ -82,6 +97,7 @@ fun MessagesScreen(
                             otherPartyName = otherPartyName, 
                             otherPartyImage = otherPartyImage,
                             otherPartyProductImage = otherPartyProductImage, 
+                            currentUserId = currentUser?.uid ?: "",
                             onClick = {
                                 navController.navigate(Screen.Chat.createRoute(swap.id))
                             }
@@ -135,7 +151,7 @@ fun TopBar() {
 }
 
 @Composable
-fun HeaderSection() {
+fun HeaderSection(selectedTab: String, onTabSelected: (String) -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -150,24 +166,26 @@ fun HeaderSection() {
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Surface(
-                color = GreenPrimary,
+                onClick = { onTabSelected("Active") },
+                color = if (selectedTab == "Active") GreenPrimary else GreenLight,
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Text(
                     text = "Active",
-                    color = White,
+                    color = if (selectedTab == "Active") White else GreenPrimary,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                 )
             }
             Surface(
-                color = GreenLight,
+                onClick = { onTabSelected("Archive") },
+                color = if (selectedTab == "Archive") GreenPrimary else GreenLight,
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Text(
                     text = "Archive",
-                    color = GreenPrimary,
+                    color = if (selectedTab == "Archive") White else GreenPrimary,
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
@@ -182,14 +200,18 @@ fun SwapListItem(
     swap: Swap, 
     otherPartyName: String, 
     otherPartyImage: String,
-    otherPartyProductImage: String, 
+    otherPartyProductImage: String,
+    currentUserId: String,
     onClick: () -> Unit
 ) {
+    val firebaseUid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+    val isUnread = !swap.read && swap.lastSenderId.isNotEmpty() && swap.lastSenderId != firebaseUid
+
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        color = White,
+        color = if (isUnread) GreenLight.copy(alpha = 0.3f) else White,
         shape = RoundedCornerShape(16.dp),
         shadowElevation = 2.dp
     ) {
@@ -204,15 +226,32 @@ fun SwapListItem(
                     .background(GreenLight),
                 contentAlignment = Alignment.Center
             ) {
-                if (otherPartyImage.isNotEmpty()) {
+                if (!otherPartyImage.isNullOrEmpty()) {
                     AsyncImage(
                         model = otherPartyImage,
-                        contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
+                        contentDescription = "Profile Image",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape),
                         contentScale = ContentScale.Crop
                     )
                 } else {
-                    Icon(Icons.Default.Person, contentDescription = null, tint = GreenPrimary)
+                    Icon(
+                        Icons.Default.Person, 
+                        contentDescription = null, 
+                        tint = GreenPrimary,
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+                
+                if (isUnread) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .size(14.dp)
+                            .background(GreenPrimary, CircleShape)
+                            .border(2.dp, White, CircleShape)
+                    )
                 }
             }
 
@@ -227,7 +266,7 @@ fun SwapListItem(
                     Text(
                         text = otherPartyName,
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = if (isUnread) FontWeight.ExtraBold else FontWeight.Bold,
                         color = TextDark,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -245,7 +284,8 @@ fun SwapListItem(
                 Text(
                     text = if (swap.lastMessage.isNotEmpty()) swap.lastMessage else "${swap.senderProductTitle} vs ${swap.receiverProductTitle}",
                     fontSize = 14.sp,
-                    color = GrayText,
+                    color = if (isUnread) TextDark else GrayText,
+                    fontWeight = if (isUnread) FontWeight.Bold else FontWeight.Normal,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )

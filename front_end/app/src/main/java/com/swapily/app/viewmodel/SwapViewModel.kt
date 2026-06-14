@@ -6,6 +6,7 @@ import com.swapily.app.data.model.Swap
 import com.swapily.app.data.model.Message
 import com.swapily.app.data.repository.SwapRepository
 import com.swapily.app.data.repository.AuthRepository
+import com.swapily.app.data.repository.ProductRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.Job
@@ -14,6 +15,7 @@ import kotlinx.coroutines.launch
 class SwapViewModel : ViewModel() {
     private val repository = SwapRepository()
     private val authRepository = AuthRepository()
+    private val productRepository = ProductRepository()
 
     private val _swaps = MutableStateFlow<List<Swap>>(emptyList())
     val swaps = _swaps.asStateFlow()
@@ -100,7 +102,9 @@ class SwapViewModel : ViewModel() {
                 receiverProductId = receiverProductId,
                 receiverProductTitle = receiverProductTitle,
                 receiverProductImage = receiverProductImage,
-                status = "PENDING"
+                status = "PENDING",
+                lastSenderId = userId, // Important: Mark sender
+                read = false           // Unread for the receiver
             )
             repository.proposeSwap(swap)
         }
@@ -108,7 +112,20 @@ class SwapViewModel : ViewModel() {
 
     fun updateSwapStatus(swapId: String, status: String) {
         viewModelScope.launch {
-            repository.updateSwapStatus(swapId, status)
+            val result = repository.updateSwapStatus(swapId, status)
+            if (result.isSuccess && status == "ACCEPTED") {
+                val swap = _swaps.value.find { it.id == swapId }
+                swap?.let {
+                    productRepository.markProductAsSwapped(it.senderProductId)
+                    productRepository.markProductAsSwapped(it.receiverProductId)
+                }
+            }
+        }
+    }
+
+    fun markAsRead(swapId: String) {
+        viewModelScope.launch {
+            repository.markSwapAsRead(swapId)
         }
     }
 }
