@@ -16,5 +16,7 @@ data class Swap(
     val receiverProductImage: String = "",
     val status: String = "PENDING", // PENDING, ACCEPTED, REJECTED, COMPLETED
     val lastMessage: String = "",
+    val lastSenderId: String = "",
+    val read: Boolean = true,
     val timestamp: Long = System.currentTimeMillis()
 )

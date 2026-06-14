@@ -94,13 +94,14 @@ fun HomeScreen(
 
     val filteredProducts = products.filter {
         val matchesUser = it.userId != user?.uid
+        val isAvailable = it.isAvailable
         val matchesSearch = it.title.contains(searchQuery, ignoreCase = true) ||
                 it.description.contains(searchQuery, ignoreCase = true)
         val matchesCategory = selectedCategory == "All" || it.category.equals(selectedCategory, ignoreCase = true)
         val matchesLocation = selectedLocation == "All" || 
                 it.location.contains(selectedLocation, ignoreCase = true) || 
                 selectedLocation.contains(it.location, ignoreCase = true)
-        matchesUser && matchesSearch && matchesCategory && matchesLocation
+        matchesUser && isAvailable && matchesSearch && matchesCategory && matchesLocation
     }
 
     Scaffold(

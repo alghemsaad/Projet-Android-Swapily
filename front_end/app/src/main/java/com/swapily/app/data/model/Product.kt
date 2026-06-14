@@ -10,5 +10,6 @@ data class Product(
     val condition: String = "", // ex: "LIKE NEW", "USED"
     val location: String = "",
     val images: List<String> = emptyList(),
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
+    val isAvailable: Boolean = true
 )

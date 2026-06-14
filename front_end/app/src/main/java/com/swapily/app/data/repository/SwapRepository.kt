@@ -68,9 +68,20 @@ class SwapRepository {
             
             firestore.collection("swaps").document(swapId).update(
                 "lastMessage", message.text,
+                "lastSenderId", message.senderId,
+                "read", false,
                 "timestamp", System.currentTimeMillis()
             ).await()
             
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun markSwapAsRead(swapId: String): Result<Unit> {
+        return try {
+            firestore.collection("swaps").document(swapId).update("read", true).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)

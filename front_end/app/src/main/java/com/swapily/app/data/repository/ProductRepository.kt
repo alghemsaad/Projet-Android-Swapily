@@ -94,4 +94,13 @@ class ProductRepository {
             Result.failure(e)
         }
     }
+
+    suspend fun markProductAsSwapped(productId: String): Result<Unit> {
+        return try {
+            firestore.collection("products").document(productId).update("isAvailable", false).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 }

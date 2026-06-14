@@ -47,6 +47,13 @@ fun ChatScreen(
 
     var inputText by remember { mutableStateOf("") }
 
+    LaunchedEffect(swapId, messages) {
+        val firebaseUid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
+        if (messages.isNotEmpty() && swap?.read == false && swap.lastSenderId != firebaseUid) {
+             swapViewModel.markAsRead(swapId)
+        }
+    }
+
     LaunchedEffect(swapId) {
         swapViewModel.fetchMessages(swapId)
     }

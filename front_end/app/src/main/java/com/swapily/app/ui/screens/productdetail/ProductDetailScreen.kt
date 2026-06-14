@@ -52,7 +52,7 @@ fun ProductDetailScreen(
     val product = products.find { it.id == productId }
     val context = LocalContext.current
     
-    val userProducts = products.filter { it.userId == currentUser?.uid }
+    val userProducts = products.filter { it.userId == currentUser?.uid && it.isAvailable }
 
     var productOwner by remember { mutableStateOf<User?>(null) }
     val isFavorite = favorites.contains(productId)
