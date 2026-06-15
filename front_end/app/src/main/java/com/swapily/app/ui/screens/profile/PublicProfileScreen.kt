@@ -48,7 +48,7 @@ fun PublicProfileScreen(
     var showAllReviews by remember { mutableStateOf(false) }
     var showAllProducts by remember { mutableStateOf(false) }
     val allProducts by productViewModel.products.collectAsState()
-    val userProducts = allProducts.filter { it.userId == userId && it.isAvailable }
+    val userProducts = allProducts.filter { it.userId == userId && it.status == "available" }
     
     val displayedProducts = if (showAllProducts) userProducts else userProducts.take(2)
     

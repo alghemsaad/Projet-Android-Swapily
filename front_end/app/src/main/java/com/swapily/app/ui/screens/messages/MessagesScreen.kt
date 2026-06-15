@@ -30,6 +30,9 @@ import com.swapily.app.ui.theme.*
 import com.swapily.app.viewmodel.SwapViewModel
 import com.swapily.app.viewmodel.AuthViewModel
 import com.swapily.app.data.model.Swap
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun MessagesScreen(
@@ -206,6 +209,10 @@ fun SwapListItem(
 ) {
     val firebaseUid = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid
     val isUnread = !swap.read && swap.lastSenderId.isNotEmpty() && swap.lastSenderId != firebaseUid
+    val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
+    val acceptedDateStr = if (swap.status == "ACCEPTED" && swap.acceptedAt > 0L) {
+        dateFormat.format(Date(swap.acceptedAt))
+    } else null
 
     Surface(
         modifier = Modifier
@@ -289,6 +296,25 @@ fun SwapListItem(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+
+                // Show accepted date for accepted swaps
+                if (acceptedDateStr != null) {
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.CalendarToday,
+                            contentDescription = null,
+                            tint = GrayText,
+                            modifier = Modifier.size(11.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "Accepted $acceptedDateStr",
+                            fontSize = 11.sp,
+                            color = GrayText
+                        )
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.width(12.dp))

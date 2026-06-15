@@ -13,5 +13,6 @@ data class Product(
     val location: String = "",
     val images: List<String> = emptyList(),
     val timestamp: Long = System.currentTimeMillis(),
-    val isAvailable: Boolean = true
+    val isAvailable: Boolean = true,
+    val status: String = "available" // "available", "swapped"
 )

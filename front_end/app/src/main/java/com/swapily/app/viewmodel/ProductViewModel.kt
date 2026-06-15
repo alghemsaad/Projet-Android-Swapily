@@ -10,6 +10,7 @@ import com.swapily.app.data.repository.ProductRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 class ProductViewModel : ViewModel() {
@@ -18,6 +19,14 @@ class ProductViewModel : ViewModel() {
 
     private val _products = MutableStateFlow<List<Product>>(emptyList())
     val products: StateFlow<List<Product>> = _products.asStateFlow()
+
+    // Only products with status == "available" (for Discover/Home)
+    private val _availableProducts = MutableStateFlow<List<Product>>(emptyList())
+    val availableProducts: StateFlow<List<Product>> = _availableProducts.asStateFlow()
+
+    // Only current user's products with status == "available" (for My Products)
+    private val _myAvailableProducts = MutableStateFlow<List<Product>>(emptyList())
+    val myAvailableProducts: StateFlow<List<Product>> = _myAvailableProducts.asStateFlow()
 
     private val _loading = MutableStateFlow(false)
     val loading = _loading.asStateFlow()
@@ -31,14 +40,44 @@ class ProductViewModel : ViewModel() {
     private val _favorites = MutableStateFlow<Set<String>>(emptySet())
     val favorites: StateFlow<Set<String>> = _favorites.asStateFlow()
 
+    private var fetchAvailableJob: Job? = null
+    private var fetchMyAvailableJob: Job? = null
+
     init {
         fetchProducts()
+        fetchAvailableProducts()
     }
 
     private fun fetchProducts() {
         viewModelScope.launch {
             repository.getAllProducts().collect {
                 _products.value = it
+            }
+        }
+    }
+
+    /**
+     * Subscribes to real-time available products (status == "available").
+     * Used by HomeScreen/Discover.
+     */
+    fun fetchAvailableProducts() {
+        fetchAvailableJob?.cancel()
+        fetchAvailableJob = viewModelScope.launch {
+            repository.getAvailableProducts().collect {
+                _availableProducts.value = it
+            }
+        }
+    }
+
+    /**
+     * Subscribes to real-time current user's available products.
+     * Used by ProfileScreen My Products section.
+     */
+    fun fetchMyAvailableProducts(userId: String) {
+        fetchMyAvailableJob?.cancel()
+        fetchMyAvailableJob = viewModelScope.launch {
+            repository.getMyAvailableProducts(userId).collect {
+                _myAvailableProducts.value = it
             }
         }
     }
