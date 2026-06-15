@@ -132,13 +132,6 @@ fun HomeScreen(
                     }
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Image(
-                            painter = painterResource(id = R.drawable.logo),
-                            contentDescription = null,
-                            modifier = Modifier.size(32.dp),
-                            contentScale = ContentScale.Fit
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = "Swapily",
                             fontSize = 22.sp,
@@ -275,7 +268,7 @@ fun HomeScreen(
             }
 
             item {
-                SmartMatchCard()
+                SmartMatchCard(onClick = { navController.navigate(Screen.Swaps.route) })
             }
 
             item {
@@ -370,7 +363,7 @@ fun CategoryChip(text: String, selected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-fun SmartMatchCard() {
+fun SmartMatchCard(onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -421,7 +414,7 @@ fun SmartMatchCard() {
                 Spacer(modifier = Modifier.height(30.dp))
 
                 Button(
-                    onClick = {},
+                    onClick = onClick,
                     shape = RoundedCornerShape(10.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = White

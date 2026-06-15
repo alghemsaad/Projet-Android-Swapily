@@ -398,7 +398,8 @@ fun OwnerCard(user: User?, primaryGreen: Color, grayText: Color, onReviewClick: 
                     modifier = Modifier.clickable { onReviewClick() }
                 ) {
                     Icon(Icons.Default.Star, contentDescription = null, tint = Color(0xFFFFB400), modifier = Modifier.size(14.dp))
-                    Text(text = " ${user?.rating ?: 0.0} (${user?.reviewsCount ?: 0} reviews)", color = grayText, fontSize = 12.sp)
+                    val formattedRating = "%.1f".format(user?.rating ?: 0.0)
+                    Text(text = " $formattedRating (${user?.reviewsCount ?: 0} reviews)", color = grayText, fontSize = 12.sp)
                 }
             }
             OutlinedButton(

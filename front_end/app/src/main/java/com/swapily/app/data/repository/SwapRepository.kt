@@ -87,4 +87,20 @@ class SwapRepository {
             Result.failure(e)
         }
     }
+
+    suspend fun getUserSwapsCount(userId: String): Int {
+        return try {
+            val senderSwaps = firestore.collection("swaps")
+                .whereEqualTo("senderId", userId)
+                .get().await()
+            val receiverSwaps = firestore.collection("swaps")
+                .whereEqualTo("receiverId", userId)
+                .get().await()
+            
+            // Note: This counts total participation (pending, accepted, etc.)
+            senderSwaps.size() + receiverSwaps.size()
+        } catch (e: Exception) {
+            0
+        }
+    }
 }

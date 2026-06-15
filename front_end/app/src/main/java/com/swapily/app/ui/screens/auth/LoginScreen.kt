@@ -20,6 +20,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -138,7 +140,7 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
         Image(
             painter = painterResource(id = R.drawable.logo),
             contentDescription = null,
-            modifier = Modifier.size(60.dp),
+            modifier = Modifier.size(100.dp),
             contentScale = ContentScale.Fit
         )
 
@@ -543,16 +545,18 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
 
         // BOTTOM IMAGES
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(bottom = 20.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
 
             Image(
-                painter = painterResource(id = R.drawable.img1),
+                painter = painterResource(id = R.drawable.img11),
                 contentDescription = null,
                 modifier = Modifier
                     .weight(1f)
                     .height(90.dp)
+                    .alpha(0.5f)
+                    .blur(0.5.dp)
                     .clip(RoundedCornerShape(18.dp)),
                 contentScale = ContentScale.Crop
             )
@@ -563,6 +567,9 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
                 modifier = Modifier
                     .weight(1f)
                     .height(90.dp)
+                    .offset(y = 20.dp)
+                    .alpha(0.5f)
+                    .blur(0.5.dp)
                     .clip(RoundedCornerShape(18.dp)),
                 contentScale = ContentScale.Crop
             )
@@ -573,6 +580,8 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
                 modifier = Modifier
                     .weight(1f)
                     .height(90.dp)
+                    .alpha(0.5f)
+                    .blur(0.5.dp)
                     .clip(RoundedCornerShape(18.dp)),
                 contentScale = ContentScale.Crop
             )
