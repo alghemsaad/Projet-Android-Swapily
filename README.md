@@ -163,4 +163,5 @@ Results are sorted by score and displayed as ranked swap suggestions.
 
 ## 📄 License
 
-This project is for educational purposes. All rights reserved © 2025 Swapily Team.
+This project was developed for educational purposes as part of a Master's program in DevOps & Cloud Computing.  
+All rights reserved © 2025 **Saad Alghem** & **Jihane Diouri**.
