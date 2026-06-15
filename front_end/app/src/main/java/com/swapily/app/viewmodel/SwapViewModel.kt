@@ -20,6 +20,10 @@ class SwapViewModel : ViewModel() {
     private val _swaps = MutableStateFlow<List<Swap>>(emptyList())
     val swaps = _swaps.asStateFlow()
 
+    // Accepted/completed swaps for history/archive
+    private val _swapHistory = MutableStateFlow<List<Swap>>(emptyList())
+    val swapHistory = _swapHistory.asStateFlow()
+
     private val _messages = MutableStateFlow<List<Message>>(emptyList())
     val messages = _messages.asStateFlow()
 
@@ -28,9 +32,11 @@ class SwapViewModel : ViewModel() {
 
     private var fetchSwapsJob: Job? = null
     private var fetchMessagesJob: Job? = null
+    private var fetchHistoryJob: Job? = null
 
     init {
         fetchSwaps()
+        fetchSwapHistory()
     }
 
     fun fetchSwaps() {
@@ -41,6 +47,19 @@ class SwapViewModel : ViewModel() {
             repository.getAllUserSwaps(userId).collect {
                 _swaps.value = it
                 _loading.value = false
+            }
+        }
+    }
+
+    /**
+     * Subscribes to real-time accepted swaps for history/archive.
+     */
+    fun fetchSwapHistory() {
+        val userId = authRepository.getCurrentUserUid() ?: return
+        fetchHistoryJob?.cancel()
+        fetchHistoryJob = viewModelScope.launch {
+            repository.getSwapHistory(userId).collect {
+                _swapHistory.value = it
             }
         }
     }
@@ -57,8 +76,10 @@ class SwapViewModel : ViewModel() {
     fun clearData() {
         fetchSwapsJob?.cancel()
         fetchMessagesJob?.cancel()
+        fetchHistoryJob?.cancel()
         _swaps.value = emptyList()
         _messages.value = emptyList()
+        _swapHistory.value = emptyList()
     }
 
     fun sendMessage(swapId: String, text: String) {
@@ -112,13 +133,21 @@ class SwapViewModel : ViewModel() {
 
     fun updateSwapStatus(swapId: String, status: String) {
         viewModelScope.launch {
-            val result = repository.updateSwapStatus(swapId, status)
-            if (result.isSuccess && status == "ACCEPTED") {
-                val swap = _swaps.value.find { it.id == swapId }
-                swap?.let {
-                    productRepository.markProductAsSwapped(it.senderProductId)
-                    productRepository.markProductAsSwapped(it.receiverProductId)
+            if (status == "ACCEPTED") {
+                // Use batch write for atomic swap acceptance
+                val swap = _swaps.value.find { it.id == swapId } ?: return@launch
+                val result = repository.acceptSwapRequest(
+                    swapId = swap.id,
+                    senderProductId = swap.senderProductId,
+                    receiverProductId = swap.receiverProductId
+                )
+                if (result.isSuccess) {
+                    // Refresh swaps and products to reflect changes
+                    fetchSwaps()
+                    fetchSwapHistory()
                 }
+            } else {
+                repository.updateSwapStatus(swapId, status)
             }
         }
     }

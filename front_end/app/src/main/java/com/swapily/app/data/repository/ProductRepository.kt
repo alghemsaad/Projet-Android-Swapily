@@ -63,6 +63,10 @@ class ProductRepository {
         }
     }
 
+    /**
+     * Returns ALL products (including swapped) as a real-time Flow.
+     * Consumers filter by status as needed.
+     */
     fun getAllProducts(): Flow<List<Product>> = callbackFlow {
         val listener = firestore.collection("products")
             .orderBy("timestamp", Query.Direction.DESCENDING)
@@ -72,6 +76,68 @@ class ProductRepository {
                     return@addSnapshotListener
                 }
                 val products = snapshot?.toObjects(Product::class.java) ?: emptyList()
+                trySend(products)
+            }
+        awaitClose { listener.remove() }
+    }
+
+    /**
+     * Returns only products with status == "available" in real-time.
+     * Used by Discover/Home.
+     */
+    fun getAvailableProducts(): Flow<List<Product>> = callbackFlow {
+        val listener = firestore.collection("products")
+            .whereEqualTo("status", "available")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                val products = snapshot?.toObjects(Product::class.java)
+                    ?.sortedByDescending { it.timestamp }
+                    ?: emptyList()
+                trySend(products)
+            }
+        awaitClose { listener.remove() }
+    }
+
+    /**
+     * Returns current user's available products in real-time.
+     * Used by My Products section.
+     */
+    fun getMyAvailableProducts(userId: String): Flow<List<Product>> = callbackFlow {
+        val listener = firestore.collection("products")
+            .whereEqualTo("userId", userId)
+            .whereEqualTo("status", "available")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                val products = snapshot?.toObjects(Product::class.java)
+                    ?.sortedByDescending { it.timestamp }
+                    ?: emptyList()
+                trySend(products)
+            }
+        awaitClose { listener.remove() }
+    }
+
+    /**
+     * Returns any user's available products in real-time.
+     * Used by Public/View User profile.
+     */
+    fun getUserAvailableProducts(userId: String): Flow<List<Product>> = callbackFlow {
+        val listener = firestore.collection("products")
+            .whereEqualTo("userId", userId)
+            .whereEqualTo("status", "available")
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+                val products = snapshot?.toObjects(Product::class.java)
+                    ?.sortedByDescending { it.timestamp }
+                    ?: emptyList()
                 trySend(products)
             }
         awaitClose { listener.remove() }
@@ -97,7 +163,12 @@ class ProductRepository {
 
     suspend fun markProductAsSwapped(productId: String): Result<Unit> {
         return try {
-            firestore.collection("products").document(productId).update("isAvailable", false).await()
+            firestore.collection("products").document(productId).update(
+                mapOf(
+                    "isAvailable" to false,
+                    "status" to "swapped"
+                )
+            ).await()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -109,7 +180,7 @@ class ProductRepository {
             val allProductsSnapshot = firestore.collection("products")
                 .get().await()
             val allProducts = allProductsSnapshot.toObjects(Product::class.java)
-                .filter { it.isAvailable } // Filter in Kotlin to handle missing fields correctly
+                .filter { it.status == "available" } // Only available products in smart matches
 
             val myProducts = allProducts.filter { it.userId == currentUserId }
             val otherProducts = allProducts.filter { it.userId != currentUserId }

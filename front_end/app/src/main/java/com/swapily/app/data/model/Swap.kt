@@ -18,5 +18,6 @@ data class Swap(
     val lastMessage: String = "",
     val lastSenderId: String = "",
     val read: Boolean = true,
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
+    val acceptedAt: Long = 0L
 )

@@ -42,6 +42,9 @@ import com.swapily.app.ui.theme.White
 import com.swapily.app.viewmodel.SwapViewModel
 import com.swapily.app.viewmodel.SmartMatchViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun ProfileScreen(
@@ -55,24 +58,36 @@ fun ProfileScreen(
     val user by viewModel.profileUser.collectAsState()
     val isLoading by viewModel.loading.collectAsState()
     val allProducts by productViewModel.products.collectAsState()
+    val myAvailableProducts by productViewModel.myAvailableProducts.collectAsState()
+    // All user products (including swapped) for stats
     val userProducts = allProducts.filter { it.userId == user?.uid }
+    // Only available user products for the My Products list
+    val userProductsAvailable = myAvailableProducts
 
     val matches by smartMatchViewModel.matches.collectAsState()
     val isMatchesLoading by smartMatchViewModel.loading.collectAsState()
 
     val allSwaps by swapViewModel.swaps.collectAsState()
+    val swapHistory by swapViewModel.swapHistory.collectAsState()
     val userSwapsList = allSwaps.filter { it.senderId == user?.uid || it.receiverId == user?.uid }
     val totalSwapsCount = userSwapsList.size
 
     var showAllProducts by remember { mutableStateOf(false) }
-    val displayedProducts = if (showAllProducts) userProducts else userProducts.take(2)
+    val displayedProducts = if (showAllProducts) userProductsAvailable else userProductsAvailable.take(2)
     
     var selectedTab by remember { mutableStateOf("Ongoing") }
-    val favoriteProducts = allProducts.filter { user?.favorites?.contains(it.id) == true }
+    val favoriteProducts = allProducts.filter { user?.favorites?.contains(it.id) == true && it.status == "available" }
+
+    LaunchedEffect(user) {
+        user?.uid?.let { uid ->
+            productViewModel.fetchMyAvailableProducts(uid)
+        }
+    }
 
     LaunchedEffect(Unit) {
         viewModel.fetchUserProfile()
         swapViewModel.fetchSwaps()
+        swapViewModel.fetchSwapHistory()
         smartMatchViewModel.loadMatches()
     }
 
@@ -126,7 +141,7 @@ fun ProfileScreen(
                         color = TextDark
                     )
                     Row {
-                        if (userProducts.size > 2 && !showAllProducts) {
+                        if (userProductsAvailable.size > 2 && !showAllProducts) {
                             TextButton(onClick = { showAllProducts = true }) {
                                 Text("See All", color = GreenPrimary)
                             }
@@ -142,7 +157,7 @@ fun ProfileScreen(
                 }
             }
 
-            if (userProducts.isEmpty()) {
+            if (userProductsAvailable.isEmpty()) {
                 item {
                     Text("No products added yet.", color = GrayText, modifier = Modifier.padding(bottom = 8.dp))
                 }
@@ -265,13 +280,13 @@ fun ProfileScreen(
                         }
                     }
                     "History" -> {
-                        val historySwaps = userSwapsList.filter { it.status != "PENDING" }
+                        val historySwaps = swapHistory
                         if (historySwaps.isEmpty()) {
                             Text("No history yet.", color = GrayText, modifier = Modifier.padding(vertical = 20.dp))
                         } else {
                             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                 historySwaps.forEach { swap ->
-                                    MySwapCard(swap, user?.uid ?: "", onClick = {
+                                    HistorySwapCard(swap, user?.uid ?: "", onClick = {
                                         navController.navigate(Screen.Chat.createRoute(swap.id))
                                     })
                                 }
@@ -559,6 +574,169 @@ fun MySwapCard(swap: com.swapily.app.data.model.Swap, currentUserUid: String, on
                 null,
                 tint = GrayText.copy(alpha = 0.5f)
             )
+        }
+    }
+}
+
+/**
+ * History swap card: shows accepted swaps with both products info and accepted date.
+ */
+@Composable
+fun HistorySwapCard(swap: com.swapily.app.data.model.Swap, currentUserUid: String, onClick: () -> Unit) {
+    val isSender = swap.senderId == currentUserUid
+    val otherPartyName = if (isSender) swap.receiverName else swap.senderName
+    val otherPartyImage = if (isSender) swap.receiverImage else swap.senderImage
+    val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
+    val acceptedDateStr = if (swap.acceptedAt > 0L) dateFormat.format(Date(swap.acceptedAt)) else ""
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(White),
+        elevation = CardDefaults.cardElevation(2.dp),
+        border = BorderStroke(1.dp, GreenLight.copy(alpha = 0.5f))
+    ) {
+        Column(modifier = Modifier.padding(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Other party profile image
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(GreenLight),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (!otherPartyImage.isNullOrEmpty()) {
+                        AsyncImage(
+                            model = otherPartyImage,
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        Icon(Icons.Default.Person, null, tint = GreenPrimary, modifier = Modifier.size(20.dp))
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(10.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Swap with $otherPartyName",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextDark,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    if (acceptedDateStr.isNotEmpty()) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                Icons.Default.CalendarToday,
+                                null,
+                                tint = GrayText,
+                                modifier = Modifier.size(12.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text(
+                                "Accepted $acceptedDateStr",
+                                fontSize = 12.sp,
+                                color = GrayText
+                            )
+                        }
+                    }
+                }
+
+                Surface(
+                    color = GreenLight,
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        "ACCEPTED",
+                        fontSize = 10.sp,
+                        color = GreenPrimary,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Both products
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Sender product
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AsyncImage(
+                        model = swap.senderProductImage,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(id = R.drawable.img1)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            swap.senderProductTitle,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = TextDark,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text("Sent", fontSize = 11.sp, color = GrayText)
+                    }
+                }
+
+                Icon(
+                    Icons.Default.SwapHoriz,
+                    null,
+                    tint = GreenPrimary,
+                    modifier = Modifier.size(20.dp)
+                )
+
+                // Receiver product
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AsyncImage(
+                        model = swap.receiverProductImage,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        contentScale = ContentScale.Crop,
+                        placeholder = painterResource(id = R.drawable.img2)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            swap.receiverProductTitle,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = TextDark,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        Text("Received", fontSize = 11.sp, color = GrayText)
+                    }
+                }
+            }
         }
     }
 }
