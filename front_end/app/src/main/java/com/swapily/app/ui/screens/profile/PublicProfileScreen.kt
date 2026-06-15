@@ -43,16 +43,21 @@ fun PublicProfileScreen(
     productViewModel: ProductViewModel
 ) {
     var user by remember { mutableStateOf<User?>(null) }
+    var swapsCount by remember { mutableIntStateOf(0) }
     var reviews by remember { mutableStateOf<List<com.swapily.app.data.model.Review>>(emptyList()) }
     var showAllReviews by remember { mutableStateOf(false) }
+    var showAllProducts by remember { mutableStateOf(false) }
     val allProducts by productViewModel.products.collectAsState()
-    val userProducts = allProducts.filter { it.userId == userId }
+    val userProducts = allProducts.filter { it.userId == userId && it.isAvailable }
+    
+    val displayedProducts = if (showAllProducts) userProducts else userProducts.take(2)
     
     val lightGreenBg = Color(0xFFE8F8EF)
 
     LaunchedEffect(userId) {
         user = authViewModel.getOtherUserProfile(userId)
         reviews = authViewModel.fetchUserReviews(userId)
+        swapsCount = com.swapily.app.data.repository.SwapRepository().getUserSwapsCount(userId)
     }
 
     Scaffold(
@@ -157,8 +162,7 @@ fun PublicProfileScreen(
                     ) {
                         StatColumn(userProducts.size.toString(), "LISTINGS", Modifier.weight(1f))
                         VerticalDivider(modifier = Modifier.height(40.dp), color = Color.LightGray.copy(alpha = 0.5f))
-                        val formattedSwaps = "%.1f".format(user?.swapsCount?.toDouble() ?: 0.0)
-                        StatColumn(formattedSwaps, "SWAPS", Modifier.weight(1f))
+                        StatColumn(swapsCount.toString(), "SWAPS", Modifier.weight(1f))
                         VerticalDivider(modifier = Modifier.height(40.dp), color = Color.LightGray.copy(alpha = 0.5f))
                         val formattedRating = "%.1f".format(user?.rating ?: 0.0)
                         StatColumn(formattedRating, "RATING", Modifier.weight(1f), isRating = true)
@@ -216,13 +220,21 @@ fun PublicProfileScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("Items for Swap", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                        Text("View All", color = GreenPrimary, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        if (userProducts.size > 2) {
+                            Text(
+                                if (showAllProducts) "Show Less" else "View All",
+                                color = GreenPrimary,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.clickable { showAllProducts = !showAllProducts }
+                            )
+                        }
                     }
                     
                     Spacer(modifier = Modifier.height(16.dp))
                     
                     // Simple grid for items (since we are in a vertical scroll, we can't use LazyVerticalGrid directly without fixed height)
-                    userProducts.chunked(2).forEach { pair ->
+                    displayedProducts.chunked(2).forEach { pair ->
                         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                             PublicProductCard(pair[0], Modifier.weight(1f), navController)
                             if (pair.size > 1) {
