@@ -45,6 +45,7 @@ import com.swapily.app.ui.components.AppBottomBar
 import com.swapily.app.ui.theme.*
 import com.swapily.app.viewmodel.ProductViewModel
 import com.swapily.app.viewmodel.AuthViewModel
+import com.swapily.app.viewmodel.UserNotificationsViewModel
 import java.util.Locale
 
 @SuppressLint("MissingPermission")
@@ -58,9 +59,17 @@ fun HomeScreen(
     val context = LocalContext.current
     val user by authViewModel.profileUser.collectAsState()
     val favorites by productViewModel.favorites.collectAsState()
-    
+
+    // Notifications
+    val notificationsVM: UserNotificationsViewModel = viewModel()
+    val unreadCount by notificationsVM.unreadCount.collectAsState()
+
     LaunchedEffect(Unit) {
         authViewModel.fetchUserProfile()
+    }
+
+    LaunchedEffect(user?.uid) {
+        user?.uid?.let { notificationsVM.loadNotifications(it) }
     }
 
     LaunchedEffect(user) {
@@ -139,8 +148,26 @@ fun HomeScreen(
                         )
                     }
 
-                    IconButton(onClick = { /* TODO */ }) {
-                        Icon(Icons.Default.NotificationsNone, null, tint = GreenPrimary)
+                    IconButton(onClick = { navController.navigate(Screen.Notifications.route) }) {
+                        Box {
+                            Icon(Icons.Default.NotificationsNone, null, tint = GreenPrimary)
+                            if (unreadCount > 0) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(16.dp)
+                                        .background(Color.Red, CircleShape)
+                                        .align(Alignment.TopEnd),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Text(
+                                        text = if (unreadCount > 9) "9+" else unreadCount.toString(),
+                                        color = Color.White,
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }

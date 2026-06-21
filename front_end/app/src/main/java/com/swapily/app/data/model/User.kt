@@ -13,5 +13,7 @@ data class User(
     val reviewsCount: Int = 0,
     val rating: Double = 0.0,
     val favorites: List<String> = emptyList(),
-    val fcmToken: String = ""
+    val fcmToken: String = "",
+    val role: String = "USER", // "USER" or "ADMIN"
+    val isBlocked: Boolean = false
 )
