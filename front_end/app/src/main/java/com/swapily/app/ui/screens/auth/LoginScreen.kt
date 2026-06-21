@@ -46,6 +46,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.swapily.app.R
+import com.swapily.app.ui.Navigation.Screen
 import com.swapily.app.viewmodel.AuthViewModel
 
 @Composable
@@ -110,11 +111,25 @@ fun LoginScreen(navController: NavController, viewModel: AuthViewModel) {
     val lightGreen = Color(0xFFC9EFD4)
     val grayText = Color(0xFF5B5B5B)
 
+    val profileUser by viewModel.profileUser.collectAsState()
+
     LaunchedEffect(success) {
         if (success) {
-            navController.navigate("home") {
-                popUpTo("login") { inclusive = true }
+            viewModel.fetchUserProfile()
+        }
+    }
+
+    LaunchedEffect(profileUser) {
+        if (success && profileUser != null) {
+            val destination = if (profileUser?.role == "ADMIN") {
+                Screen.AdminMain.route
+            } else {
+                Screen.Home.route
             }
+            navController.navigate(destination) {
+                popUpTo(Screen.Login.route) { inclusive = true }
+            }
+            viewModel.resetSuccess()
         }
     }
 

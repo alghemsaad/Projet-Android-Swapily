@@ -1,13 +1,18 @@
 package com.swapily.app.ui.Navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.swapily.app.ui.screens.admin.AdminMainScreen
 import com.swapily.app.ui.screens.auth.LoginScreen
 import com.swapily.app.ui.screens.home.HomeScreen
 import com.swapily.app.ui.screens.messages.MessagesScreen
+import com.swapily.app.ui.screens.notifications.UserNotificationsScreen
 import com.swapily.app.ui.screens.profile.ProfileScreen
 import com.swapily.app.ui.screens.profile.EditProfileScreen
 import com.swapily.app.ui.screens.addproduct.AddProductScreen
@@ -18,6 +23,7 @@ import com.swapily.app.ui.screens.profile.PublicProfileScreen
 import com.swapily.app.viewmodel.AuthViewModel
 import com.swapily.app.viewmodel.ProductViewModel
 import com.swapily.app.viewmodel.SwapViewModel
+import com.swapily.app.viewmodel.UserNotificationsViewModel
 
 @Composable
 fun AppNavigation() {
@@ -26,6 +32,22 @@ fun AppNavigation() {
     val authViewModel: AuthViewModel = viewModel()
     val productViewModel: ProductViewModel = viewModel()
     val swapViewModel: SwapViewModel = viewModel()
+
+    val profileUser by authViewModel.profileUser.collectAsState()
+
+    // Auto-navigate if user is already logged in (persistent session)
+    LaunchedEffect(profileUser) {
+        if (profileUser != null && navController.currentDestination?.route == Screen.Login.route) {
+            val destination = if (profileUser?.role == "ADMIN") {
+                Screen.AdminMain.route
+            } else {
+                Screen.Home.route
+            }
+            navController.navigate(destination) {
+                popUpTo(Screen.Login.route) { inclusive = true }
+            }
+        }
+    }
 
     NavHost(
         navController = navController,
@@ -74,6 +96,20 @@ fun AppNavigation() {
         composable(Screen.PublicProfile.route) { backStackEntry ->
             val userId = backStackEntry.arguments?.getString("userId") ?: ""
             PublicProfileScreen(navController, userId, authViewModel, productViewModel)
+        }
+
+        // Admin route
+        composable(Screen.AdminMain.route) {
+            AdminMainScreen(navController, authViewModel)
+        }
+
+        // User Notifications
+        composable(Screen.Notifications.route) {
+            val notificationsVM: UserNotificationsViewModel = viewModel()
+            UserNotificationsScreen(
+                viewModel = notificationsVM,
+                onBack = { navController.popBackStack() }
+            )
         }
     }
 }

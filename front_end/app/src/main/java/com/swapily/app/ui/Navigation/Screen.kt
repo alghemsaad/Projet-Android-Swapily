@@ -19,4 +19,14 @@ sealed class Screen(val route: String) {
     object PublicProfile : Screen("public_profile/{userId}") {
         fun createRoute(userId: String) = "public_profile/$userId"
     }
+    object Notifications : Screen("notifications")
+
+    // Admin screens
+    object AdminMain : Screen("admin_main")
+    object AdminDashboard : Screen("admin_dashboard")
+    object AdminUsers : Screen("admin_users")
+    object AdminProducts : Screen("admin_products")
+    object AdminSwaps : Screen("admin_swaps")
+    object AdminReports : Screen("admin_reports")
+    object AdminNotifications : Screen("admin_notifications")
 }

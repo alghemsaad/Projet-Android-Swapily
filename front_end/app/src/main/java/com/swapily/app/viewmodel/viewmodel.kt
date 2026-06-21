@@ -47,6 +47,10 @@ class AuthViewModel : ViewModel() {
         _registerSuccess.value = false
     }
 
+    fun resetSuccess() {
+        _success.value = false
+    }
+
     fun updateFcmToken() {
         val uid = repository.getCurrentUserUid() ?: return
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
@@ -175,17 +179,13 @@ class AuthViewModel : ViewModel() {
         val uid = repository.getCurrentUserUid()
         if (uid != null) {
             viewModelScope.launch {
-                _loading.value = true
                 val result = repository.getUserProfile(uid)
-                _loading.value = false
                 result.onSuccess {
                     _profileUser.value = it
                 }.onFailure {
-                    _error.value = it.message ?: "Error fetching profile"
+                    // Silently fail - don't set error for background fetches
                 }
             }
-        } else {
-            _error.value = "User not logged in"
         }
     }
 
